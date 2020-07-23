@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import { Modal } from 'react-bootstrap';
 import { parse } from 'qs';
 import { withRouter } from 'react-router';
+import { ToastContainer, toast } from 'react-toastify';
 
 import '../styles/App.css';
 import Map from './Map';
@@ -81,13 +82,21 @@ class App extends Component {
   async componentDidUpdate(prevProps, prevStates) {
     const { system } = this.state;
     if (system !== prevStates.system) {
-      data = await fetchTransmittersBySystem(system);
+      try {
+        data = await fetchTransmittersBySystem(system);
+      } catch (e) {
+        toast.error(e);
+      }
     }
   }
 
   async getConfigurations(configurationKey = 'fm-std') {
-    const newState = await fetchAPIConfigurations(configurationKey);
-    this.setState({ ...newState }, () => {});
+    try {
+      const newState = await fetchAPIConfigurations(configurationKey);
+      this.setState({ ...newState }, () => {});
+    } catch (e) {
+      toast.error(e);
+    }
   }
 
   queryChange(newQuery) {
@@ -338,17 +347,16 @@ class App extends Component {
             addTransmiter={state.isShowingModal}
           />
         ) : null}
-        {
-          <Map
-            selectedTransmitters={state.toDrawSelected}
-            selectedMarkers={state.selectedSystemTransmitters}
-            configuration={state.selectedConfiguration}
-            directional={state.settings.drawDirectionalChar}
-            system={state.system}
-            automaticZoom={state.settings.automaticZoom}
-            drawMultiple={state.settings.drawMultiple}
-          />
-        }
+        <Map
+          selectedTransmitters={state.toDrawSelected}
+          selectedMarkers={state.selectedSystemTransmitters}
+          configuration={state.selectedConfiguration}
+          directional={state.settings.drawDirectionalChar}
+          system={state.system}
+          automaticZoom={state.settings.automaticZoom}
+          drawMultiple={state.settings.drawMultiple}
+        />
+        <ToastContainer autoClose={5000} />
       </div>
     );
   }

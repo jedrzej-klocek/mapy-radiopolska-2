@@ -1,7 +1,7 @@
 .littleTable {
   position: absolute;
   /* width: 6%; */
-  height: 23em;
+  height: 24em;
   left: 50%;
   transform: translate(-50%);
   bottom: -22.2em;
@@ -69,7 +69,7 @@
 }
 
 .littleTable .react-bs-table-container {
-  height: 90%;
+  height: 89%;
   background-color: white;
   border-radius: 5px 5px 0px 0px;
   overflow: auto;

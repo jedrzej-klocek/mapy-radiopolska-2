@@ -1,15 +1,8 @@
-import React, { Component, createRef } from 'react';
+import React, { Component } from 'react';
 import L from 'leaflet';
-import {
-  Map,
-  Marker,
-  Popup,
-  TileLayer,
-  ZoomControl,
-  LayersControl,
-} from 'react-leaflet';
+import { Map, Marker, Popup, TileLayer, ZoomControl } from 'react-leaflet';
 import { Link } from 'react-router-dom';
-import { ToastContainer, toast } from 'react-toastify';
+import { ToastContainer } from 'react-toastify';
 
 import { fetchKMLsArray } from '../api/maps-layers';
 import { postError } from '../api/errors';
@@ -26,7 +19,6 @@ import 'react-toastify/dist/ReactToastify.css';
 import 'leaflet/dist/leaflet.css';
 import '../styles/Map.css';
 
-const { BaseLayer } = LayersControl;
 const icon = require('../images/icons/transmitter_half.png');
 const gpsIcon = require('../images/icons/yagi_half.png');
 
@@ -44,14 +36,12 @@ config.params = {
 };
 config.tileLayer = {
   uri: process.env.REACT_APP_TILE_PROVIDER_1_URL,
-  uri2: process.env.REACT_APP_TILE_PROVIDER_2_URL,
+  // uri: process.env.REACT_APP_TILE_PROVIDER_2_URL,
   params: {
     minZoom: 4,
     maxZoom: 16,
-    osmAttribution:
+    attribution:
       'Map data © <a href="https://openstreetmap.org">OpenStreetMap</a> contributors',
-    topoAttribution:
-      'Map data © <a href="https://openstreetmap.org">OpenStreetMap</a> contributors, map style: © <a href="https://opentopomap.org">OpenTopoMap</a>',
     id: '',
     accessToken: '',
   },
@@ -68,27 +58,37 @@ config.gpsIcon = L.icon({
   iconUrl: gpsIcon,
   iconSize: [30, 65],
   // iconAnchor: [22, 94],
-  popupAnchor: [0, -30],
+  popupAnchor: [-10, -35],
 });
 
 class MapLayer extends Component {
-  mapRef = createRef(null);
   constructor(props) {
     super(props);
     this.state = {
+      map: null,
       selectedTransmitters: [],
       newSelectedTransmitters: [],
       markers: [],
       directionalChars: [],
+      // gpsMarker: null,
       gpsPosition: null,
       layersIDs: [],
     };
     this.mapNode = null;
     this.gpsChanged = this.gpsChanged.bind(this);
     this.checkGeoLocation = this.checkGeoLocation.bind(this);
+    // this.setView = this.setView.bind(this);
   }
 
   gpsChanged(pos) {
+    if (gpsMarker) {
+      map.removeLayer(gpsMarker); // removing old one
+    }
+
+    const marker = L.marker([pos.coords.latitude, pos.coords.longitude], {
+      icon: config.gpsIcon,
+    }).addTo(map);
+    marker.bindPopup('Twoja pozycja');
     this.setState({
       gpsPosition: [pos.coords.latitude, pos.coords.longitude],
     });
@@ -102,14 +102,10 @@ class MapLayer extends Component {
   }
 
   componentDidMount() {
-    const leafletMap = this.mapRef.current.leafletElement;
     const { map } = this.state;
+    // create the Leaflet map object
+    if (!map) this.init(this.mapNode);
 
-    if (!map) {
-      this.layersGroup = new L.LayerGroup();
-      this.layersGroup.addTo(leafletMap);
-      this.setState({ map: leafletMap });
-    }
     // check user position in every second
     this.checkGeoLocation();
     setTimeout(this.checkGeoLocation, 5000);
@@ -173,11 +169,20 @@ class MapLayer extends Component {
           this.setView();
         }
         this.drawDirectionalChars();
+        this.addMarkers();
+      } else if (props.selectedMarkers !== prevProps.selectedMarkers) {
+        this.addMarkers();
       } else if (props.directional !== prevProps.directional) {
         this.clearDirectionalMarkers();
         this.drawDirectionalChars();
       }
     }
+  }
+
+  componentWillUnmount() {
+    // this destroys the Leaflet map object & related event listeners
+    const { map } = this.state;
+    map.remove();
   }
 
   clearDirectionalMarkers() {
@@ -214,11 +219,7 @@ class MapLayer extends Component {
       fetch(url)
         .then((res) => {
           if (!res.ok) {
-            try {
-              postError({ code: res.status, method: 'GET', url });
-            } catch (e) {
-              toast.info(e);
-            }
+            postError({ code: res.status, method: 'GET', url });
           }
           return res;
         })
@@ -245,20 +246,9 @@ class MapLayer extends Component {
       selectedTransmitters.forEach((element) => {
         const url = `${REACT_APP_PROD_FILES_URL}/ant_pattern/${element.id_antena}`;
         fetch(url)
-          .then(async (res) => {
+          .then((res) => {
             if (!res.ok) {
-              try {
-                const promise = await postError({
-                  code: res.status,
-                  method: 'GET',
-                  url,
-                });
-                toast.info(
-                  `Powiadamiam administrację o problemie: brak charakterystyki kierunkowej anteny`
-                );
-              } catch (e) {
-                toast.error(e);
-              }
+              postError({ code: res.status, method: 'GET', url });
             }
             return res;
           })
@@ -271,20 +261,68 @@ class MapLayer extends Component {
             }).addTo(map);
             tempArray.push(marker);
           })
-          .catch(async (e) => {
-            try {
-              const promise = await postError({
-                code: 'unknown',
-                method: 'GET',
-                url,
-              });
-            } catch (e) {
-              toast.info(e);
-            }
-          });
+          .catch((e) => console.log(e));
       });
       this.setState({ directionalChars: tempArray }, () => {});
     }
+  }
+
+  // toast.error(
+  //   `Niestety, mapa dla nadajnika ${element.mhz}MHz/ ${element.program}/ ${element.obiekt} nie jest jeszcze gotowa.
+  //             Powiadom administrację o problemie`,
+  //   {
+  //     position: toast.POSITION.BOTTOM_CENTER,
+  //   },
+  // );
+
+  addMarkers() {
+    const { map, markers } = this.state;
+    const { selectedMarkers, system } = this.props;
+
+    markers.forEach((marker) => {
+      map.removeLayer(marker);
+    });
+    this.setState({ markers: [] }, () => {});
+    const tempArray = [];
+    selectedMarkers.forEach((element) => {
+      if (element.typ === system) {
+        const marker = L.marker([element.szerokosc, element.dlugosc], {
+          icon: config.myIcon,
+        }).addTo(map);
+        if (system === 'fm') {
+          marker.bindPopup(
+            `${element.skrot}
+            <a target='_blank' href=${REACT_APP_PROD_LIST_URL}/obiekt/${element.id_obiekt}>
+
+            ${element.obiekt}</a><br>
+            <b>${element.program}</b><br>
+            Częstotliwość: ${element.mhz} MHz ${element.kategoria}<br>
+            PI: ${element.pi} ERP: ${element.erp}kW Pol: ${element.polaryzacja}<br>
+            Wys. podst. masztu: ${element.wys_npm}m n.p.m<br>
+            Wys. umieszcz. nadajnika: ${element.antena_npt}m n.p.t`
+          );
+        } else {
+          marker.bindPopup(
+            `${element.skrot}
+            <a target='_blank' href=${REACT_APP_PROD_LIST_URL}/obiekt/${
+              element.id_obiekt
+            }>
+            ${element.obiekt}</a><br>
+            ${
+              system === 'fm'
+                ? `<b>${element.program}</b><br></br>`
+                : `<b>${element.multipleks}</b><br></br>`
+            }
+            Częstotliwość: ${element.mhz} MHz ${element.kategoria}<br>
+            ERP: ${element.erp}kW Pol: ${element.polaryzacja}<br>
+            Wys. podst. masztu: ${element.wys_npm}m n.p.m<br>
+            Wys. umieszcz. nadajnika: ${element.antena_npt}m n.p.t`
+          );
+        }
+        tempArray.push(marker);
+      }
+    });
+    this.setState({ markers: tempArray }, () => {});
   }
 
   setView() {
@@ -307,6 +345,26 @@ class MapLayer extends Component {
     }
   }
 
+  init() {
+    const { map } = this.state;
+
+    if (map) return;
+    // this function creates the Leaflet map object and is called after the Map component mounts
+
+    const newMap = L.map(id, config.params);
+    L.control.zoom({ position: 'bottomright' }).addTo(newMap);
+    this.layersGroup = new L.LayerGroup();
+    this.layersGroup.addTo(newMap);
+    L.control.scale({ position: 'bottomleft' }).addTo(map);
+    // a TileLayer is used as the "basemap"
+    new L.TileLayer(config.tileLayer.uri, config.tileLayer.params).addTo(
+      newMap
+    );
+
+    // set our state to include the tile layer
+    this.setState({ map: newMap });
+  }
+
   render() {
     const { state } = this;
     const mapRef = (node) => {
@@ -315,93 +373,19 @@ class MapLayer extends Component {
     return (
       <div id="mapUI">
         <div ref={mapRef} id="map">
-          <Map
-            center={config.params.center}
-            ref={this.mapRef}
-            zoom={config.params.zoom}
-            zoomControl={false}
-            minZoom={config.params.minZoom}
-            maxZoom={config.params.maxZoom}
-          >
-            <LayersControl position="bottomleft">
-              <BaseLayer checked name="OpenStreetMap">
-                <TileLayer
-                  attribution={config.tileLayer.params.osmAttribution}
-                  url={config.tileLayer.uri}
-                />
-              </BaseLayer>
-              <BaseLayer name="OpenTopoMap">
-                <TileLayer
-                  attribution={config.tileLayer.params.topoAttribution}
-                  url={config.tileLayer.uri2}
-                />
-              </BaseLayer>
-              {state.gpsPosition ? (
-                <Marker position={state.gpsPosition} icon={config.gpsIcon}>
-                  <Popup>
-                    Twoja pozycja <Link to="?tra=12345">super link</Link>
-                  </Popup>
-                </Marker>
-              ) : null}
-              {this.props.selectedMarkers.length
-                ? this.props.selectedMarkers
-                    .filter((el) => el.typ === this.props.system)
-                    .map((element) => (
-                      <Marker
-                        key={element.id_nadajnik}
-                        position={[element.szerokosc, element.dlugosc]}
-                        icon={config.myIcon}
-                        className="transmitter_marker"
-                        zIndexOffset={2000}
-                      >
-                        <Popup>
-                          {element.skrot}
-                          <a
-                            target="_blank"
-                            href={`${REACT_APP_PROD_LIST_URL}/obiekt/${element.id_obiekt}`}
-                          >
-                            {` ${element.obiekt}`}
-                          </a>
-                          <br />
-                          {this.props.system === 'fm' ? (
-                            <>
-                              <b>{element.program}</b>
-                              <br />
-                            </>
-                          ) : (
-                            <>
-                              <b>{element.multipleks}</b>
-                              <br />
-                            </>
-                          )}
-                          Częstotliwość: {element.mhz} MHz {element.kategoria}
-                          <br />
-                          {this.props.system === 'fm'
-                            ? `PI: ${element.pi}`
-                            : ''}
-                          {` ERP: ${element.erp}kW Pol: ${element.polaryzacja}`}
-                          <br />
-                          {`Wys. podst. masztu: ${element.wys_npm}m n.p.m`}
-                          <br />
-                          {`Wys. umieszcz. nadajnika: ${element.antena_npt}m n.p.t`}
-                          <br />
-                          <Link to={`?tra=${element.id_nadajnik}&dev=0`}>
-                            Częstotliwość +- 0 Mhz
-                          </Link>
-                          <br />
-                          <Link to={`?tra=${element.id_nadajnik}&dev=0.1`}>
-                            Częstotliwość +- 0.1 MHz
-                          </Link>
-                          <br />
-                          <Link to={`?tra=${element.id_nadajnik}&dev=0.2`}>
-                            Częstotliwość +- 0.2 MHz
-                          </Link>
-                        </Popup>
-                      </Marker>
-                    ))
-                : null}
-              <ZoomControl position="bottomleft" />
-            </LayersControl>
+          <Map center={config.params.center} zoom={config.params.zoom}>
+            <TileLayer
+              attribution={config.tileLayer.params.attribution}
+              url={config.tileLayer.uri}
+            />
+            <ZoomControl position="bottomright" />
+            {state.gpsPosition ? (
+              <Marker position={state.gpsPosition} icon={config.gpsIcon}>
+                <Popup>
+                  Twoja pozycja <Link to="?tra=12345">super link</Link>
+                </Popup>
+              </Marker>
+            ) : null}
           </Map>
         </div>
         <ToastContainer autoClose={5000} />

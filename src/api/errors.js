@@ -1,7 +1,7 @@
-const { PROD_API_URL } = process.env;
+const { REACT_APP_PROD_API_URL } = process.env;
 
-export const postError = (body) => {
-  fetch(`${PROD_API_URL}/submitErrorJson`, {
+export const postError = async (body) => {
+  const response = await fetch(`${REACT_APP_PROD_API_URL}/submitErrorJson`, {
     method: 'POST',
     mode: 'cors',
     headers: {
@@ -10,5 +10,9 @@ export const postError = (body) => {
       'Content-Length': 122,
     },
     body: JSON.stringify({ app: 'mapyrp', ...body }),
-  });
+  })
+    .then((res) => res.text())
+    .catch((_) => {
+      throw 'Nieudana próba powiadomienia administracji o problemie.';
+    });
 };

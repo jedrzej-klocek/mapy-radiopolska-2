@@ -3,18 +3,26 @@ const { REACT_APP_PROD_API_URL } = process.env;
 export const fetchTransmittersBySystem = async (system) => {
   const dataUrl = `${REACT_APP_PROD_API_URL}/transmitterAll/pl/${system}`;
 
-  const response = await fetch(dataUrl).then((res) => res.json());
+  const response = await fetch(dataUrl)
+    .then((res) => res.json())
+    .catch((_) => {
+      throw `Coś poszło nie tak podczas połączenia z serwerem nadajników dla systemu ${system}.`;
+    });
 
   if (response.success && response.data.length) {
     return response.data || [];
   }
-  throw Error(response.err_msg);
+  throw 'Brak połączenia z serwerem nadajników.';
 };
 
 export const fetchAPIConfigurations = async (configurationKey) => {
   const dataUrl = `${REACT_APP_PROD_API_URL}/cfg`;
 
-  const response = await fetch(dataUrl).then((res) => res.json());
+  const response = await fetch(dataUrl)
+    .then((res) => res.json())
+    .catch((_) => {
+      throw 'Coś poszło nie tak podczas połączenia z serwerem konfiguracji map.';
+    });
 
   if (response.success) {
     const configurations = response.data;
@@ -24,11 +32,17 @@ export const fetchAPIConfigurations = async (configurationKey) => {
 
     return { selectedConfiguration, configurations };
   }
-  throw Error(response.err_msg);
+  throw 'Brak połączenia z serwerem konfiguracji map.';
 };
 
 const fetchTransmitterById = async (url) => {
-  const response = await fetch(url).then((res) => res.json());
+  const response = await fetch(url)
+    .then((res) => res.json())
+    .catch((_) => {
+      throw Error(
+        'Coś poszło nie tak podczas połączenia z serwerem nadajnika.'
+      );
+    });
 
   if (response.success && response.data.length) {
     return response.data[0] || undefined;
@@ -45,7 +59,9 @@ export const fetchTransmittersArray = async (ids, system) => {
 
     return fetchTransmitterById(url)
       .then((transmitter) => transmitter)
-      .catch((e) => console.error(e));
+      .catch((e) => {
+        console.error(e);
+      });
   });
 
   return Promise.all(requests);
