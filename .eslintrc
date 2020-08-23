@@ -15,12 +15,6 @@
         "extensions": [".js", ".jsx"]
       }
     ],
-    "prettier/prettier": [
-      "error",
-      {
-        "semi": false
-      }
-    ],
     "comma-dangle": 0,
     "no-console": 1
   }

@@ -1,26 +1,27 @@
-import React, { Component } from 'react';
-import { Modal } from 'react-bootstrap';
-import { parse } from 'qs';
-import { ToastContainer, toast } from 'react-toastify';
+import React, { Component } from "react";
+import { Modal } from "react-bootstrap";
+import { parse } from "qs";
+import { ToastContainer, toast } from "react-toastify";
 
-import '../styles/App.css';
-import Map from './Map';
-import SystemButton from './Button';
-import Table from './Table/index';
-import LittleTable from './LittleTable';
-import ConfigurationsBox from './ConfigurationsBox';
-import PopUp from './PopUp';
-import Info from './Info';
+import "../styles/App.css";
+import Map from "./Map";
+import Table from "./Table/index";
+import LittleTable from "./LittleTable";
+import ConfigurationsBox from "./ConfigurationsBox";
+import PopUp from "./PopUp";
+import Info from "./Info";
 
 import {
   fetchTransmittersBySystem,
   fetchAPIConfigurations,
   fetchTransmittersArray,
-} from '../api/transmitters';
-import { generateUrl, parseQueryToState } from '../helpers/url';
-import { isValidSystem } from '../validators/url';
+} from "../api/transmitters";
+import { generateUrl, parseQueryToState } from "../helpers/url";
+import { isValidSystem } from "../validators/url";
+import SystemButton from "./Button";
+import { SystemButtons } from "./SystemButtons";
 
-const logoIcon = require('../images/icons/logoIcon.png');
+const logoIcon = require("../images/icons/logoIcon.png");
 
 let data = [];
 
@@ -63,8 +64,8 @@ class App extends Component {
     const { location } = window;
 
     if (location.search && location.search.length) {
-      if (location.search.split('?').length > 1) {
-        this.checkQueryString(parse(location.search.split('?')[1]));
+      if (location.search.split("?").length > 1) {
+        this.checkQueryString(parse(location.search.split("?")[1]));
       }
     } else {
       this.getConfigurations();
@@ -83,7 +84,7 @@ class App extends Component {
     }
   }
 
-  async getConfigurations(configurationKey = 'fm-std') {
+  async getConfigurations(configurationKey = "fm-std") {
     try {
       const newState = await fetchAPIConfigurations(configurationKey);
       this.setState({ ...newState }, () => {});
@@ -98,10 +99,10 @@ class App extends Component {
 
   checkQueryString(query) {
     if (!Object.keys(query).length || !query.sys) {
-      window.location.href = '/';
+      window.location.href = "/";
     }
     this.setState({ ...parseQueryToState(query) }, () => {
-      const ids = query.tra.split(',');
+      const ids = query.tra.split(",");
 
       if (query.sys && isValidSystem(query.sys)) {
         fetchTransmittersArray(ids, query.sys).then((transmitters) => {
@@ -117,7 +118,7 @@ class App extends Component {
           }
         });
       } else {
-        console.error('Error: niewłaściwe parametry wejściowe');
+        console.error("Error: niewłaściwe parametry wejściowe");
         this.getConfigurations();
         this.setDefaultSystem();
       }
@@ -130,7 +131,7 @@ class App extends Component {
   }
 
   setDefaultSystem() {
-    this.setState({ system: 'fm' });
+    this.setState({ system: "fm" });
   }
 
   setConfiguration(configurationString) {
@@ -224,42 +225,14 @@ class App extends Component {
     });
   }
 
-  systemButtonFocusClass(system, shouldBeSystem) {
-    let className = 'system';
-    if (system === shouldBeSystem) className += ' focus';
-    return className;
-  }
-
   render() {
-    const domain = window.location.port.length
-      ? `${window.location.protocol}//${window.location.hostname}:${window.location.port}${window.location.pathname}`
-      : `${window.location.protocol}//${window.location.hostname}${window.location.pathname}`;
+    const domain = window.location.origin;
 
     const { props, state } = this;
     return (
       <div id="gridId" className="grid">
         <div id="systems_container" className="container systems">
-          <SystemButton
-            id="fm"
-            class={this.systemButtonFocusClass(state.system, 'fm')}
-            title="Zmień system na FM"
-            value="FM"
-            onSystemClick={this.handleSystemClick}
-          />
-          <SystemButton
-            id="dab"
-            class={this.systemButtonFocusClass(state.system, 'dab')}
-            title="Zmień system na DAB+"
-            value="DAB+"
-            onSystemClick={this.handleSystemClick}
-          />
-          <SystemButton
-            id="dvbt"
-            class={this.systemButtonFocusClass(state.system, 'dvbt')}
-            title="Zmień system na DVB-T"
-            value="DVB-T"
-            onSystemClick={this.handleSystemClick}
-          />
+          <SystemButtons onSystemChange={this.handleSystemClick} />
         </div>
         <a href={domain}>
           <img id="home" className="button home" alt="Odswiez" src={logoIcon} />

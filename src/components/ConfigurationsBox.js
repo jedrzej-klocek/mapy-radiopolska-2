@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import '../styles/ConfigurationsBox.css';
-import Legend from './Legend';
+import { RPLegend } from './Legend';
 
 import settingsIcon from '../images/baseline_settings_black_36dp.png';
 
@@ -186,7 +186,7 @@ class ConfigurationsBox extends Component {
             </button>
           </div>
         )}
-        <Legend legend={state.checkedConfiguration} />
+        <RPLegend legend={state.checkedConfiguration} />
       </div>
     ) : null;
   }

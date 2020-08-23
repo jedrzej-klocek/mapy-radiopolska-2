@@ -1,5 +1,5 @@
-import React, { Component, createRef } from 'react';
-import L from 'leaflet';
+import React, { Component, createRef } from "react";
+import L from "leaflet";
 import {
   Map,
   Marker,
@@ -7,28 +7,29 @@ import {
   TileLayer,
   ZoomControl,
   LayersControl,
-} from 'react-leaflet';
-import { ToastContainer, toast } from 'react-toastify';
+} from "react-leaflet";
+import { ToastContainer, toast } from "react-toastify";
 
-import { fetchKMLsArray } from '../api/maps-layers';
-import { postError } from '../api/errors';
-import MarkerPopup from './MarkerPopup';
+import MapMarker from "./Marker";
+import { fetchKMLsArray } from "../api/maps-layers";
+import { postError } from "../api/errors";
+import MarkerPopup from "./MarkerPopup";
 import {
   shouldClearAllLayers,
   shouldDrawLayers,
   shouldSetView,
   layersDifference,
-} from '../helpers/map';
+} from "../helpers/map";
 
-import 'react-toastify/dist/ReactToastify.css';
+import "react-toastify/dist/ReactToastify.css";
 
 // postCSS import of Leaflet's CSS
-import 'leaflet/dist/leaflet.css';
-import '../styles/Map.css';
+import "leaflet/dist/leaflet.css";
+import "../styles/Map.css";
 
 const { BaseLayer } = LayersControl;
-const icon = require('../images/icons/transmitter_half.png');
-const gpsIcon = require('../images/icons/yagi_half.png');
+const icon = require("../images/icons/transmitter_half.png");
+const gpsIcon = require("../images/icons/yagi_half.png");
 
 const { REACT_APP_PROD_FILES_URL } = process.env;
 
@@ -51,8 +52,8 @@ config.tileLayer = {
       'Map data © <a href="https://openstreetmap.org">OpenStreetMap</a> contributors',
     topoAttribution:
       'Map data © <a href="https://openstreetmap.org">OpenStreetMap</a> contributors, map style: © <a href="https://opentopomap.org">OpenTopoMap</a>',
-    id: '',
-    accessToken: '',
+    id: "",
+    accessToken: "",
   },
 };
 
@@ -72,6 +73,7 @@ config.gpsIcon = L.icon({
 
 class MapLayer extends Component {
   mapRef = createRef(null);
+
   constructor(props) {
     super(props);
     this.state = {
@@ -82,6 +84,7 @@ class MapLayer extends Component {
       gpsPosition: null,
       layersIDs: [],
     };
+
     this.mapNode = null;
     this.gpsChanged = this.gpsChanged.bind(this);
     this.checkGeoLocation = this.checkGeoLocation.bind(this);
@@ -214,7 +217,7 @@ class MapLayer extends Component {
         .then((res) => {
           if (!res.ok) {
             try {
-              postError({ code: res.status, method: 'GET', url });
+              postError({ code: res.status, method: "GET", url });
             } catch (e) {
               toast.info(e);
             }
@@ -249,7 +252,7 @@ class MapLayer extends Component {
               try {
                 const promise = await postError({
                   code: res.status,
-                  method: 'GET',
+                  method: "GET",
                   url,
                 });
                 toast.info(
@@ -273,8 +276,8 @@ class MapLayer extends Component {
           .catch(async (e) => {
             try {
               const promise = await postError({
-                code: 'unknown',
-                method: 'GET',
+                code: "unknown",
+                method: "GET",
                 url,
               });
             } catch (e) {
@@ -344,17 +347,12 @@ class MapLayer extends Component {
                 ? this.props.selectedMarkers
                     .filter((el) => el.typ === this.props.system)
                     .map((element) => (
-                      <Marker
+                      <MapMarker
                         key={element.id_nadajnik}
-                        position={[element.szerokosc, element.dlugosc]}
-                        icon={config.myIcon}
-                        className="transmitter_marker"
-                        zIndexOffset={2000}
-                      >
-                        <Popup>
-                          <MarkerPopup element={element} />
-                        </Popup>
-                      </Marker>
+                        element={element}
+                        config={config}
+                        system={this.props.system}
+                      />
                     ))
                 : null}
               <ZoomControl position="bottomleft" />

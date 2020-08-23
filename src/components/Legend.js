@@ -40,4 +40,4 @@ function Legend(props) {
   return <div className="legendContainer" />;
 }
 
-export default Legend;
+export const RPLegend = React.memo(Legend);
