@@ -1,8 +1,8 @@
-import L from 'leaflet';
-import { xml2js } from 'xml-js';
+import L from "leaflet";
+import { xml2js } from "xml-js";
 
-import { postError } from './errors';
-import { isValidElement } from '../validators/map-layers';
+import { postError } from "./errors";
+import { isValidElement } from "../validators/map-layers";
 
 const { REACT_APP_PROD_FILES_URL } = process.env;
 
@@ -18,6 +18,7 @@ const mapKMLToBounds = (response) => {
   boundsArray.push(Number(kml.LatLonBox.west._text));
   const corner1 = L.latLng(boundsArray[1], boundsArray[0]);
   const corner2 = L.latLng(boundsArray[2], boundsArray[3]);
+
   return L.latLngBounds(corner1, corner2);
 };
 
@@ -26,18 +27,19 @@ const fetchKMLByMapHash = async (url) => {
     if (!res.ok) {
       postError({
         code: res.status,
-        method: 'GET',
+        method: "GET",
         url,
         msg: res.body,
       });
     }
+
     return { text: res.text(), status: res.status };
   });
 
   if ((await response.text).length && response.status === 200) {
     return response.text;
   }
-  throw Error('Brak opisu mapy pokrycia o podanym id w bazie danych');
+  throw Error("Brak opisu mapy pokrycia o podanym id w bazie danych");
 };
 
 export const fetchKMLsArray = async (elements, configuration) => {
@@ -53,7 +55,8 @@ export const fetchKMLsArray = async (elements, configuration) => {
         })
         .catch((e) => console.error(e));
     }
-    return 'invalid map layer input parameters';
+
+    return "invalid map layer input parameters";
   });
 
   return Promise.all(requests);

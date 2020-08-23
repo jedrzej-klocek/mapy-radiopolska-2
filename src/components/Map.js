@@ -13,7 +13,6 @@ import { ToastContainer, toast } from "react-toastify";
 import { RPMarker } from "./Marker";
 import { fetchKMLsArray } from "../api/maps-layers";
 import { postError } from "../api/errors";
-import MarkerPopup from "./MarkerPopup";
 import {
   shouldClearAllLayers,
   shouldDrawLayers,
@@ -123,6 +122,7 @@ class MapLayer extends Component {
     if (prevProps.configuration) {
       if (shouldDrawLayers(props, prevProps)) {
         const { layersIDs } = this.state;
+
         if (shouldClearAllLayers(props, prevProps)) {
           if (layersIDs.length > 0 && !props.drawMultiple) {
             this.layersGroup.removeLayer(
@@ -149,6 +149,7 @@ class MapLayer extends Component {
             await fetchKMLsArray(diff.difference, props.configuration).then(
               (res) => {
                 const { selectedTransmitters } = this.state;
+
                 this.setState(
                   {
                     selectedTransmitters: [...selectedTransmitters, ...res],
@@ -166,6 +167,7 @@ class MapLayer extends Component {
 
               this.layersGroup.removeLayer(id.leafletId);
               const newLayersIDs = layersIDs.filter((layer) => el !== layer);
+
               this.setState({ layersIDs: newLayersIDs });
             });
           }
@@ -210,9 +212,11 @@ class MapLayer extends Component {
 
     const { layersIDs } = this.state;
     const newLayersIDs = layersIDs;
+
     /* eslint no-underscore-dangle: 0 */
     newSelectedTransmitters.forEach((element) => {
       const url = `${REACT_APP_PROD_FILES_URL}/get/${configuration.cfg}/${element._mapahash}.png`;
+
       fetch(url)
         .then((res) => {
           if (!res.ok) {
@@ -222,10 +226,12 @@ class MapLayer extends Component {
               toast.info(e);
             }
           }
+
           return res;
         })
         .then(() => {
           const layer = L.imageOverlay(url, element.bounds, { opacity: 0.6 });
+
           this.layersGroup.addLayer(layer);
           newLayersIDs.push({
             [element.id_nadajnik]: { leafletId: layer._leaflet_id },
@@ -244,17 +250,20 @@ class MapLayer extends Component {
 
     if (directional) {
       const tempArray = directionalChars.slice();
+
       selectedTransmitters.forEach((element) => {
         const url = `${REACT_APP_PROD_FILES_URL}/ant_pattern/${element.id_antena}`;
+
         fetch(url)
           .then(async (res) => {
             if (!res.ok) {
               try {
-                const promise = await postError({
+                await postError({
                   code: res.status,
                   method: "GET",
                   url,
                 });
+
                 toast.info(
                   `Powiadamiam administrację o problemie: brak charakterystyki kierunkowej anteny`
                 );
@@ -262,6 +271,7 @@ class MapLayer extends Component {
                 toast.error(e);
               }
             }
+
             return res;
           })
           .then(() => {
@@ -271,11 +281,12 @@ class MapLayer extends Component {
                 iconSize: [130, 130],
               }),
             }).addTo(map);
+
             tempArray.push(marker);
           })
-          .catch(async (e) => {
+          .catch(async () => {
             try {
-              const promise = await postError({
+              await postError({
                 code: "unknown",
                 method: "GET",
                 url,
@@ -294,6 +305,7 @@ class MapLayer extends Component {
 
     let latitude = 0;
     let longitude = 0;
+
     if (selectedTransmitters.length) {
       selectedTransmitters.forEach((element) => {
         latitude += Number(element.szerokosc);
@@ -314,6 +326,7 @@ class MapLayer extends Component {
     const mapRef = (node) => {
       this.mapNode = node;
     };
+
     return (
       <div id="mapUI">
         <div ref={mapRef} id="map">

@@ -1,10 +1,10 @@
-import React from 'react';
-import { BootstrapTable, TableHeaderColumn } from 'react-bootstrap-table';
+import React from "react";
+import { BootstrapTable, TableHeaderColumn } from "react-bootstrap-table";
 
-import { linkCellFormat, linkCellsProps } from '../helpers/table';
+import { linkCellFormat, linkCellsProps } from "../helpers/table";
 
-import 'react-bootstrap-table/dist/react-bootstrap-table-all.min.css';
-import '../styles/LittleTable.css';
+import "react-bootstrap-table/dist/react-bootstrap-table-all.min.css";
+import "../styles/LittleTable.css";
 
 class LittleTable extends React.Component {
   constructor(props) {
@@ -43,7 +43,7 @@ class LittleTable extends React.Component {
     if (selected !== prevProps.selected) {
       this.updateSelectedIDs();
     } else if (addTransmiter !== prevProps.addTransmiter) {
-      this.state.addTransmiter = addTransmiter;
+      this.setState({ addTransmiter });
     }
   }
 
@@ -52,6 +52,7 @@ class LittleTable extends React.Component {
     const { callbackFromApp, checkMultiple } = this.props;
 
     let tempArray = selectedTransmitters.slice();
+
     if (isSelected) {
       // add new object which was selected
       if (!checkMultiple) {
@@ -60,7 +61,9 @@ class LittleTable extends React.Component {
       tempArray.push(row);
     } else if (!isSelected) {
       // remove object which has same id_nadajnik as exist
-      tempArray = tempArray.filter((obj) => obj.id_nadajnik !== row.id_nadajnik);
+      tempArray = tempArray.filter(
+        (obj) => obj.id_nadajnik !== row.id_nadajnik
+      );
     }
 
     this.setState({ selectedTransmitters: tempArray }, () => {
@@ -74,6 +77,7 @@ class LittleTable extends React.Component {
     const { callbackFromApp } = this.props;
 
     let tempArray = selectedTransmitters.slice();
+
     if (isSelected) {
       rows.forEach((element) => {
         tempArray.push(element);
@@ -81,7 +85,7 @@ class LittleTable extends React.Component {
     } else {
       rows.forEach((element) => {
         tempArray = tempArray.filter(
-          (obj) => obj.id_nadajnik !== element.id_nadajnik,
+          (obj) => obj.id_nadajnik !== element.id_nadajnik
         );
       });
     }
@@ -94,7 +98,8 @@ class LittleTable extends React.Component {
 
   handleClick() {
     const { open } = this.state;
-    this.setState({ open: !open }, () => { });
+
+    this.setState({ open: !open }, () => {});
   }
 
   handleAddTransmiterClick() {
@@ -112,22 +117,23 @@ class LittleTable extends React.Component {
 
     const selectRowProp = checkMultiple
       ? {
-        mode: 'checkbox',
-        clickToSelect: true,
-        bgColor: 'rgba(240, 129, 104, 0.7)',
-        onSelect: this.onDrawSelected.bind(this),
-        onSelectAll: this.onDrawAllSelected.bind(this),
-        selected: selectedIDs,
-      }
+          mode: "checkbox",
+          clickToSelect: true,
+          bgColor: "rgba(240, 129, 104, 0.7)",
+          onSelect: this.onDrawSelected.bind(this),
+          onSelectAll: this.onDrawAllSelected.bind(this),
+          selected: selectedIDs,
+        }
       : {
-        mode: 'radio',
-        clickToSelect: true,
-        bgColor: 'rgba(240, 129, 104, 0.7)',
-        onSelect: this.onDrawSelected.bind(this),
-        selected: selectedIDs,
-      };
+          mode: "radio",
+          clickToSelect: true,
+          bgColor: "rgba(240, 129, 104, 0.7)",
+          onSelect: this.onDrawSelected.bind(this),
+          selected: selectedIDs,
+        };
     let table = null;
-    if (system === 'fm') {
+
+    if (system === "fm") {
       table = (
         <div>
           <TableHeaderColumn isKey dataField="id_nadajnik" hidden>
@@ -138,16 +144,24 @@ class LittleTable extends React.Component {
           </TableHeaderColumn>
           <TableHeaderColumn
             dataField="program"
-            dataFormat={(cell, row) => linkCellFormat(cell, row, linkCellsProps.station)}
-            width="40%">
+            dataFormat={(cell, row) =>
+              linkCellFormat(cell, row, linkCellsProps.station)
+            }
+            width="40%"
+          >
             Program
           </TableHeaderColumn>
-          <TableHeaderColumn dataField="obiekt" dataFormat={(cell, row) => linkCellFormat(cell, row, linkCellsProps.obiekt)}>
+          <TableHeaderColumn
+            dataField="obiekt"
+            dataFormat={(cell, row) =>
+              linkCellFormat(cell, row, linkCellsProps.obiekt)
+            }
+          >
             Obiekt nadawczy
           </TableHeaderColumn>
         </div>
       );
-    } else if (system === 'dab' || system === 'dvbt') {
+    } else if (system === "dab" || system === "dvbt") {
       table = (
         <div>
           <TableHeaderColumn isKey dataField="id_nadajnik" hidden>
@@ -158,11 +172,19 @@ class LittleTable extends React.Component {
           </TableHeaderColumn>
           <TableHeaderColumn
             dataField="multipleks"
-            dataFormat={(cell, row) => linkCellFormat(cell, row, linkCellsProps.mux)}
-            width="30%">
+            dataFormat={(cell, row) =>
+              linkCellFormat(cell, row, linkCellsProps.mux)
+            }
+            width="30%"
+          >
             Multipleks
           </TableHeaderColumn>
-          <TableHeaderColumn dataField="obiekt" dataFormat={(cell, row) => linkCellFormat(cell, row, linkCellsProps.obiekt)}>
+          <TableHeaderColumn
+            dataField="obiekt"
+            dataFormat={(cell, row) =>
+              linkCellFormat(cell, row, linkCellsProps.obiekt)
+            }
+          >
             Obiekt nadawczy
           </TableHeaderColumn>
         </div>
@@ -175,20 +197,23 @@ class LittleTable extends React.Component {
           type="button"
           aria-label="hide transmitters check table"
           className="circleButton"
-          onClick={this.handleClick} />
+          onClick={this.handleClick}
+        />
         <BootstrapTable
           data={data}
           selectRow={selectRowProp}
           striped
           hover
-          condensed>
+          condensed
+        >
           {table.props.children}
         </BootstrapTable>
         <div className="AddTransmitter">
           <button
             type="button"
             className="button"
-            onClick={this.handleAddTransmiterClick}>
+            onClick={this.handleAddTransmiterClick}
+          >
             Dodaj nadajnik
           </button>
         </div>

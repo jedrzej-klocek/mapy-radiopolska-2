@@ -1,21 +1,21 @@
-import React, { Component } from 'react';
-import '../styles/ConfigurationsBox.css';
-import { RPLegend } from './Legend';
+import React, { Component } from "react";
+import "../styles/ConfigurationsBox.css";
+import { RPLegend } from "./Legend";
 
-import settingsIcon from '../images/baseline_settings_black_36dp.png';
+import settingsIcon from "../images/baseline_settings_black_36dp.png";
 
 const settingsCheckboxesDesc = [
   {
-    name: 'drawDirectionalChar',
-    label: 'Rysuj charakterystyki kierunkowe anten',
+    name: "drawDirectionalChar",
+    label: "Rysuj charakterystyki kierunkowe anten",
   },
   {
-    name: 'automaticZoom',
-    label: 'Automatyczny zoom i wyśrodkowanie map',
+    name: "automaticZoom",
+    label: "Automatyczny zoom i wyśrodkowanie map",
   },
   {
-    name: 'drawMultiple',
-    label: 'Zezwól na rysowanie wielu map pokrycia.',
+    name: "drawMultiple",
+    label: "Zezwól na rysowanie wielu map pokrycia.",
   },
 ];
 
@@ -38,6 +38,7 @@ class ConfigurationsBox extends Component {
 
   componentDidUpdate(prevProps) {
     const { system } = this.props;
+
     if (system !== prevProps.system) {
       this.getPossibleConfiguration(prevProps);
     }
@@ -54,6 +55,7 @@ class ConfigurationsBox extends Component {
       const possibleConfs = props.configurations.filter(
         (configuration) => configuration.typ === props.system
       );
+
       this.setState(
         {
           possibleConfigurations: possibleConfs,
@@ -88,11 +90,12 @@ class ConfigurationsBox extends Component {
 
   onSettingsChanged(e) {
     const { target } = e;
-    const value = target.type === 'checkbox' ? target.checked : target.value;
+    const value = target.type === "checkbox" ? target.checked : target.value;
 
     this.setState({ [target.name]: value }, () => {
       const { settingsCallback } = this.props;
       const { automaticZoom, drawDirectionalChar, drawMultiple } = this.state;
+
       settingsCallback({
         settings: { automaticZoom, drawDirectionalChar, drawMultiple },
       });
@@ -126,14 +129,17 @@ class ConfigurationsBox extends Component {
     const configur = possibleConfigurations.filter(
       (configuration) => configuration.cfg === e.target.value
     );
+
     this.setState({ checkedConfiguration: configur[0] }, () => {
       const { checkedConfiguration } = this.state;
+
       callbackFromApp(checkedConfiguration);
     });
   }
 
   openConfiguration() {
     const { isOpen } = this.state;
+
     this.setState({ isOpen: !isOpen });
   }
 
@@ -163,8 +169,8 @@ class ConfigurationsBox extends Component {
               <form>{this.possibleConfRadios()}</form>
               <b>{state.checkedConfiguration.opis}</b> <br /> <br />
               {this.settingsCheckboxes()}
-              <b className="label-margin-right" style={{ color: 'red' }}>
-                UWAGA:{' '}
+              <b className="label-margin-right" style={{ color: "red" }}>
+                UWAGA:{" "}
               </b>
               Może to spowodować spadek wydajności pracy Twojego urządzenia oraz
               jakości obserwacji map pokrycia.

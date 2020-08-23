@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React from "react";
 import { Marker, Popup } from "react-leaflet";
 
 import "../styles/Marker.css";
@@ -28,10 +28,15 @@ const radioButtons = [
   },
 ];
 
-const MapMarker = ({ element, config, system, isInterferences, interferences }) => {
+const MapMarker = ({
+  element,
+  config,
+  system,
+  isInterferences,
+  interferences,
+}) => {
   const isRadioChecked = (radio) => {
-    
-
+    console.log(radio);
   };
 
   return (
@@ -45,6 +50,7 @@ const MapMarker = ({ element, config, system, isInterferences, interferences }) 
         {element.skrot || ""}
         <a
           target="_blank"
+          rel="noreferrer"
           href={`${REACT_APP_PROD_LIST_URL}/obiekt/${element.id_obiekt}`}
         >
           {element.obiekt || ""}

@@ -47,8 +47,8 @@ class App extends Component {
       },
       interferences: {
         byTransmitter: null,
-        byFrequency: 0
-      }
+        byFrequency: 0,
+      },
     };
     this.handleSystemClick = this.handleSystemClick.bind(this);
     this.handleShareClick = this.handleShareClick.bind(this);
@@ -79,6 +79,7 @@ class App extends Component {
 
   async componentDidUpdate(prevProps, prevStates) {
     const { system } = this.state;
+
     if (system !== prevStates.system) {
       try {
         data = await fetchTransmittersBySystem(system);
@@ -91,6 +92,7 @@ class App extends Component {
   async getConfigurations(configurationKey = "fm-std") {
     try {
       const newState = await fetchAPIConfigurations(configurationKey);
+
       this.setState({ ...newState }, () => {});
     } catch (e) {
       toast.error(e);
@@ -140,11 +142,13 @@ class App extends Component {
 
   handleSystemClick(id) {
     const { selectedTransmitters, system } = this.state;
+
     if (system !== id) {
       data = [];
     }
 
     const currentTransmitters = [];
+
     selectedTransmitters.forEach((element) => {
       if (element.typ === id) {
         currentTransmitters.push(element);
@@ -158,6 +162,7 @@ class App extends Component {
 
   handleShareClick() {
     const url = generateUrl(this.state);
+
     this.setState((prevState) => ({
       uri: url,
       isShowingShare: !prevState.isShowingShare,
@@ -188,6 +193,7 @@ class App extends Component {
     this.setState({ selectedTransmitters: dataFromTable }, () => {
       const { selectedTransmitters, system, toDrawSelected } = this.state;
       const currentTransmitters = [];
+
       selectedTransmitters.forEach((element) => {
         if (element.typ === system) {
           currentTransmitters.push(element);
@@ -196,6 +202,7 @@ class App extends Component {
       const intersection = currentTransmitters.filter((transmitter) =>
         toDrawSelected.includes(transmitter)
       );
+
       this.setState(
         {
           selectedSystemTransmitters: currentTransmitters,
@@ -228,7 +235,8 @@ class App extends Component {
   render() {
     const domain = window.location.origin;
 
-    const { props, state } = this;
+    const { state } = this;
+
     return (
       <div id="gridId" className="grid">
         <div id="systems_container" className="container systems">

@@ -4,12 +4,11 @@ import "../styles/Legend.css";
 
 const Legend = ({ legend }) => {
   if (legend) {
-    const colors = Object.keys(legend.legenda).map(
-      (i) => legend.legenda[i]
-    );
+    const colors = Object.keys(legend.legenda).map((i) => legend.legenda[i]);
     const voltages = Object.keys(legend.legenda);
 
     const legendFields = [];
+
     for (let i = 0; i < colors.length; i += 1) {
       voltages[i] = voltages[i].split("_").pop();
       legendFields.push(
@@ -36,6 +35,7 @@ const Legend = ({ legend }) => {
       </div>
     );
   }
+
   return <div className="legendContainer" />;
 };
 

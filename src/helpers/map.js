@@ -1,19 +1,23 @@
-export const shouldSetView = (props, prevProps) => props.configuration === prevProps.configuration
-  && props.directional === prevProps.directional
-  && props.automaticZoom;
+export const shouldSetView = (props, prevProps) =>
+  props.configuration === prevProps.configuration &&
+  props.directional === prevProps.directional &&
+  props.automaticZoom;
 
-export const shouldDrawLayers = (props, prevProps) => props.selectedTransmitters
-  && props.configuration
-  && props.configuration.cfg
-  && (props.selectedTransmitters !== prevProps.selectedTransmitters
-    || props.configuration.cfg !== prevProps.configuration.cfg);
+export const shouldDrawLayers = (props, prevProps) =>
+  props.selectedTransmitters &&
+  props.configuration &&
+  props.configuration.cfg &&
+  (props.selectedTransmitters !== prevProps.selectedTransmitters ||
+    props.configuration.cfg !== prevProps.configuration.cfg);
 
-export const shouldClearAllLayers = (props, prevProps) => props.selectedTransmitters.length === 0
-  || (props.selectedTransmitters.length === 1 && !props.drawMultiple)
-  || props.configuration !== prevProps.configuration;
+export const shouldClearAllLayers = (props, prevProps) =>
+  props.selectedTransmitters.length === 0 ||
+  (props.selectedTransmitters.length === 1 && !props.drawMultiple) ||
+  props.configuration !== prevProps.configuration;
 
 export const layersDifference = (transmitters, ids) => {
   let toAdd = false;
+
   if (transmitters.length > ids.length) {
     toAdd = true;
   }
@@ -24,7 +28,9 @@ export const layersDifference = (transmitters, ids) => {
 
   if (toAdd) {
     difference = transmittersIDs.filter((id) => !layersIDs.includes(id));
-    difference = transmitters.filter((el) => difference.includes(el.id_nadajnik));
+    difference = transmitters.filter((el) =>
+      difference.includes(el.id_nadajnik)
+    );
   } else {
     difference = layersIDs.filter((id) => !transmittersIDs.includes(id));
     difference = ids.filter((el) => difference.includes(Object.keys(el)[0]));

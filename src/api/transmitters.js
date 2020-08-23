@@ -5,14 +5,14 @@ export const fetchTransmittersBySystem = async (system) => {
 
   const response = await fetch(dataUrl)
     .then((res) => res.json())
-    .catch((_) => {
+    .catch(() => {
       throw `Coś poszło nie tak podczas połączenia z serwerem nadajników dla systemu ${system}.`;
     });
 
   if (response.success && response.data.length) {
     return response.data || [];
   }
-  throw 'Brak połączenia z serwerem nadajników.';
+  throw "Brak połączenia z serwerem nadajników.";
 };
 
 export const fetchAPIConfigurations = async (configurationKey) => {
@@ -20,8 +20,8 @@ export const fetchAPIConfigurations = async (configurationKey) => {
 
   const response = await fetch(dataUrl)
     .then((res) => res.json())
-    .catch((_) => {
-      throw 'Coś poszło nie tak podczas połączenia z serwerem konfiguracji map.';
+    .catch(() => {
+      throw "Coś poszło nie tak podczas połączenia z serwerem konfiguracji map.";
     });
 
   if (response.success) {
@@ -32,15 +32,15 @@ export const fetchAPIConfigurations = async (configurationKey) => {
 
     return { selectedConfiguration, configurations };
   }
-  throw 'Brak połączenia z serwerem konfiguracji map.';
+  throw "Brak połączenia z serwerem konfiguracji map.";
 };
 
 const fetchTransmitterById = async (url) => {
   const response = await fetch(url)
     .then((res) => res.json())
-    .catch((_) => {
+    .catch(() => {
       throw Error(
-        'Coś poszło nie tak podczas połączenia z serwerem nadajnika.'
+        "Coś poszło nie tak podczas połączenia z serwerem nadajnika."
       );
     });
 
@@ -50,7 +50,7 @@ const fetchTransmitterById = async (url) => {
   if (!response.success) {
     throw Error(response.err_msg);
   }
-  throw Error('Brak nadajnika o podanym id w bazie danych');
+  throw Error("Brak nadajnika o podanym id w bazie danych");
 };
 
 export const fetchTransmittersArray = async (ids, system) => {

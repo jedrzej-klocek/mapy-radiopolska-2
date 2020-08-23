@@ -22,6 +22,7 @@ export const generateUrl = (state) => {
       url += `&d=${settings.drawDirectionalChar}`;
     }
   }
+
   return url;
 };
 

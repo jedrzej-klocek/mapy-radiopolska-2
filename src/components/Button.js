@@ -1,5 +1,5 @@
-import React, { Component } from 'react';
-import '../styles/Button.css';
+import React, { Component } from "react";
+import "../styles/Button.css";
 
 class SystemButton extends Component {
   constructor(props) {
@@ -9,11 +9,13 @@ class SystemButton extends Component {
 
   handleClick() {
     const { id, onSystemClick } = this.props;
+
     onSystemClick(id);
   }
 
   render() {
     const { props } = this;
+
     return (
       <div className="ButtonWrapper">
         <button
@@ -21,7 +23,8 @@ class SystemButton extends Component {
           type="button"
           className={`button ${props.class}`}
           title={props.title}
-          onClick={this.handleClick}>
+          onClick={this.handleClick}
+        >
           {props.value}
         </button>
       </div>

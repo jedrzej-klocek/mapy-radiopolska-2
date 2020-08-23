@@ -64,11 +64,7 @@ const Info = ({ showFull }) => {
         <Modal.Title>Witaj w aplikacji Mapy serwisu RadioPolska.pl</Modal.Title>
       </Modal.Header>
       <Modal.Body>
-        <Carousel
-          activeIndex={index}
-          direction="right"
-          onSelect={handleSelect}
-        >
+        <Carousel activeIndex={index} direction="right" onSelect={handleSelect}>
           <Carousel.Item>
             <div className="IntroImageWrapper first-slide" />
             <Carousel.Caption>
