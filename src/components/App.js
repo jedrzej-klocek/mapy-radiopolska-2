@@ -1,7 +1,6 @@
 import React, { Component } from 'react';
 import { Modal } from 'react-bootstrap';
 import { parse } from 'qs';
-import { withRouter } from 'react-router';
 import { ToastContainer, toast } from 'react-toastify';
 
 import '../styles/App.css';
@@ -61,22 +60,16 @@ class App extends Component {
   }
 
   componentDidMount() {
-    const { history } = this.props;
+    const { location } = window;
 
-    if (history.location.search.length) {
-      if (history.location.search.split('?').length > 1) {
-        this.checkQueryString(parse(history.location.search.split('?')[1]));
+    if (location.search && location.search.length) {
+      if (location.search.split('?').length > 1) {
+        this.checkQueryString(parse(location.search.split('?')[1]));
       }
     } else {
       this.getConfigurations();
       this.setDefaultSystem();
     }
-
-    history.listen((location) => {
-      if (location.search.split('?').length > 1) {
-        this.queryChange(parse(location.search.split('?')[1]));
-      }
-    });
   }
 
   async componentDidUpdate(prevProps, prevStates) {
@@ -105,8 +98,7 @@ class App extends Component {
 
   checkQueryString(query) {
     if (!Object.keys(query).length || !query.sys) {
-      const { history } = this.props;
-      history.push('/');
+      window.location.href = '/';
     }
     this.setState({ ...parseQueryToState(query) }, () => {
       const ids = query.tra.split(',');
@@ -322,9 +314,7 @@ class App extends Component {
             class="share"
             title="Pobierz link do udostępnienia"
             value=""
-            onSystemClick={() => {
-              props.history.push('/?tra=123');
-            }}
+            onSystemClick={this.handleShareClick}
           />
         </div>
         {state.isShowingShare ? <PopUp text={state.uri} /> : null}
@@ -362,4 +352,4 @@ class App extends Component {
   }
 }
 
-export default withRouter(App);
+export default App;

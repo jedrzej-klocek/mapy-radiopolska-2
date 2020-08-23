@@ -7,9 +7,7 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 function MyRouter() {
   return (
     <BrowserRouter>
-      <Switch>
-        <Route exact path="/" component={App} />
-      </Switch>
+      <Route exact path="/" component={App} />
     </BrowserRouter>
   );
 }

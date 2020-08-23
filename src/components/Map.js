@@ -8,11 +8,11 @@ import {
   ZoomControl,
   LayersControl,
 } from 'react-leaflet';
-import { Link } from 'react-router-dom';
 import { ToastContainer, toast } from 'react-toastify';
 
 import { fetchKMLsArray } from '../api/maps-layers';
 import { postError } from '../api/errors';
+import MarkerPopup from './MarkerPopup';
 import {
   shouldClearAllLayers,
   shouldDrawLayers,
@@ -31,7 +31,6 @@ const icon = require('../images/icons/transmitter_half.png');
 const gpsIcon = require('../images/icons/yagi_half.png');
 
 const { REACT_APP_PROD_FILES_URL } = process.env;
-const { REACT_APP_PROD_LIST_URL } = process.env;
 
 const config = {};
 
@@ -338,9 +337,7 @@ class MapLayer extends Component {
               </BaseLayer>
               {state.gpsPosition ? (
                 <Marker position={state.gpsPosition} icon={config.gpsIcon}>
-                  <Popup>
-                    Twoja pozycja <Link to="?tra=12345">super link</Link>
-                  </Popup>
+                  <Popup>Twoja pozycja</Popup>
                 </Marker>
               ) : null}
               {this.props.selectedMarkers.length
@@ -355,47 +352,7 @@ class MapLayer extends Component {
                         zIndexOffset={2000}
                       >
                         <Popup>
-                          {element.skrot}
-                          <a
-                            target="_blank"
-                            href={`${REACT_APP_PROD_LIST_URL}/obiekt/${element.id_obiekt}`}
-                          >
-                            {` ${element.obiekt}`}
-                          </a>
-                          <br />
-                          {this.props.system === 'fm' ? (
-                            <>
-                              <b>{element.program}</b>
-                              <br />
-                            </>
-                          ) : (
-                            <>
-                              <b>{element.multipleks}</b>
-                              <br />
-                            </>
-                          )}
-                          Częstotliwość: {element.mhz} MHz {element.kategoria}
-                          <br />
-                          {this.props.system === 'fm'
-                            ? `PI: ${element.pi}`
-                            : ''}
-                          {` ERP: ${element.erp}kW Pol: ${element.polaryzacja}`}
-                          <br />
-                          {`Wys. podst. masztu: ${element.wys_npm}m n.p.m`}
-                          <br />
-                          {`Wys. umieszcz. nadajnika: ${element.antena_npt}m n.p.t`}
-                          <br />
-                          <Link to={`?tra=${element.id_nadajnik}&dev=0`}>
-                            Częstotliwość +- 0 Mhz
-                          </Link>
-                          <br />
-                          <Link to={`?tra=${element.id_nadajnik}&dev=0.1`}>
-                            Częstotliwość +- 0.1 MHz
-                          </Link>
-                          <br />
-                          <Link to={`?tra=${element.id_nadajnik}&dev=0.2`}>
-                            Częstotliwość +- 0.2 MHz
-                          </Link>
+                          <MarkerPopup element={element} />
                         </Popup>
                       </Marker>
                     ))
