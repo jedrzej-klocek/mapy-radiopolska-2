@@ -9,7 +9,7 @@ import Table from "./Table/index";
 import LittleTable from "./LittleTable";
 import ConfigurationsBox from "./ConfigurationsBox";
 import PopUp from "./PopUp";
-import Info from "./Info";
+import { RPInfo } from "./Info";
 
 import {
   fetchTransmittersBySystem,
@@ -45,6 +45,10 @@ class App extends Component {
         drawMultiple: false,
         drawDirectionalChar: true,
       },
+      interferences: {
+        byTransmitter: null,
+        byFrequency: 0
+      }
     };
     this.handleSystemClick = this.handleSystemClick.bind(this);
     this.handleShareClick = this.handleShareClick.bind(this);
@@ -91,10 +95,6 @@ class App extends Component {
     } catch (e) {
       toast.error(e);
     }
-  }
-
-  queryChange(newQuery) {
-    console.log(newQuery);
   }
 
   checkQueryString(query) {
@@ -279,7 +279,7 @@ class App extends Component {
           size="xl"
           onHide={this.handleInfoClose}
         >
-          <Info showFull={state.showFullInfo} />
+          <RPInfo showFull={state.showFullInfo} />
         </Modal>
         <div className="shareWrapper">
           <SystemButton
@@ -318,6 +318,7 @@ class App extends Component {
           system={state.system}
           automaticZoom={state.settings.automaticZoom}
           drawMultiple={state.settings.drawMultiple}
+          interferences={state.interferences}
         />
         <ToastContainer autoClose={5000} />
       </div>

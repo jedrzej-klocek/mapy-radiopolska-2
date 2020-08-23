@@ -10,7 +10,7 @@ import {
 } from "react-leaflet";
 import { ToastContainer, toast } from "react-toastify";
 
-import MapMarker from "./Marker";
+import { RPMarker } from "./Marker";
 import { fetchKMLsArray } from "../api/maps-layers";
 import { postError } from "../api/errors";
 import MarkerPopup from "./MarkerPopup";
@@ -347,11 +347,13 @@ class MapLayer extends Component {
                 ? this.props.selectedMarkers
                     .filter((el) => el.typ === this.props.system)
                     .map((element) => (
-                      <MapMarker
+                      <RPMarker
                         key={element.id_nadajnik}
                         element={element}
                         config={config}
                         system={this.props.system}
+                        isInterferences={!this.props.drawMultiple}
+                        interferences={this.props.interferences}
                       />
                     ))
                 : null}

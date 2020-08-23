@@ -1,34 +1,33 @@
-import React from 'react';
+import React from "react";
 
-import '../styles/Legend.css';
+import "../styles/Legend.css";
 
-function Legend(props) {
-  const { legend } = props;
-
+const Legend = ({ legend }) => {
   if (legend) {
-    const colors = Object.keys(props.legend.legenda).map(
-      (i) => props.legend.legenda[i],
+    const colors = Object.keys(legend.legenda).map(
+      (i) => legend.legenda[i]
     );
-    const voltages = Object.keys(props.legend.legenda);
+    const voltages = Object.keys(legend.legenda);
 
     const legendFields = [];
     for (let i = 0; i < colors.length; i += 1) {
-      voltages[i] = voltages[i].split('_').pop();
+      voltages[i] = voltages[i].split("_").pop();
       legendFields.push(
         <div className="legendField" key={`legend${i.toString()}`}>
           <div
             className="legendColor"
             key={`color${i.toString()}`}
-            style={{ backgroundColor: `#${colors[i]}` }} />
+            style={{ backgroundColor: `#${colors[i]}` }}
+          />
           <b key={`voltage${i.toString()}`}>{voltages[i]}</b>
-        </div>,
+        </div>
       );
     }
     legendFields.push(
       <div className="legendField" key="unit">
-        <div className="legendColor" style={{ backgroundColor: 'white' }} />
+        <div className="legendColor" style={{ backgroundColor: "white" }} />
         <b>dB(µV/m)</b>
-      </div>,
+      </div>
     );
 
     return (
@@ -38,6 +37,6 @@ function Legend(props) {
     );
   }
   return <div className="legendContainer" />;
-}
+};
 
 export const RPLegend = React.memo(Legend);
