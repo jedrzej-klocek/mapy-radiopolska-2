@@ -137,8 +137,10 @@ class MapLayer extends Component {
             props.selectedTransmitters,
             props.configuration
           ).then((res) => {
-            this.state.selectedTransmitters = res;
-            this.state.newSelectedTransmitters = res;
+            if (res) {
+              this.state.selectedTransmitters = res;
+              this.state.newSelectedTransmitters = res;
+            }
           });
 
           this.newDrawLayers();

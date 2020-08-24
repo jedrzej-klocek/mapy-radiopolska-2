@@ -1,14 +1,13 @@
 import React from "react";
 import { BootstrapTable, TableHeaderColumn } from "react-bootstrap-table";
 
-import {
-  iconFormat,
-  linkCellFormat,
-  linkCellsProps,
-} from "../../helpers/table";
+import { RPLoader } from "./Loader";
+import { startColumns, endColumns } from "./Columns";
+
+import { tableOptions } from "../../config/Table";
+import { linkCellFormat, linkCellsProps } from "../../helpers/table";
 
 import "react-bootstrap-table/dist/react-bootstrap-table-all.min.css";
-import "../../styles/Spinner.css";
 
 class Table extends React.Component {
   constructor(props) {
@@ -84,47 +83,12 @@ class Table extends React.Component {
       selected: selectedIDs,
     };
 
-    const options = {
-      sizePerPageList: [
-        {
-          text: "5",
-          value: 5,
-        },
-        {
-          text: "10",
-          value: 10,
-        },
-        {
-          text: "15",
-          value: 15,
-        },
-      ],
-      sizePerPage: 10,
-      components: {
-        totalText: "asdasd",
-      },
-    };
-
     let table = null;
 
     if (system === "fm") {
       table = (
         <>
-          <TableHeaderColumn dataField="id_nadajnik" hidden>
-            ID
-          </TableHeaderColumn>
-          <TableHeaderColumn dataField="logo" dataFormat={iconFormat}>
-            Logotyp
-          </TableHeaderColumn>
-          <TableHeaderColumn
-            dataField="mhz"
-            filter={{ type: "TextFilter" }}
-            dataFormat={(cell, row) =>
-              linkCellFormat(cell, row, linkCellsProps.mHz, true)
-            }
-          >
-            MHz
-          </TableHeaderColumn>
+          {startColumns.props.children}
           <TableHeaderColumn
             dataField="program"
             dataFormat={(cell, row) =>
@@ -134,38 +98,13 @@ class Table extends React.Component {
           >
             Program
           </TableHeaderColumn>
-          <TableHeaderColumn
-            dataField="obiekt"
-            dataFormat={(cell, row) =>
-              linkCellFormat(cell, row, linkCellsProps.obiekt)
-            }
-            filter={{ type: "TextFilter" }}
-          >
-            Obiekt nadawczy
-          </TableHeaderColumn>
-          <TableHeaderColumn dataField="nwoj" filter={{ type: "TextFilter" }}>
-            Woj.
-          </TableHeaderColumn>
+          {endColumns.props.children}
         </>
       );
     } else if (system === "dab" || system === "dvbt") {
       table = (
         <>
-          <TableHeaderColumn dataField="id_nadajnik" hidden>
-            ID
-          </TableHeaderColumn>
-          <TableHeaderColumn dataField="logo" dataFormat={iconFormat}>
-            Logotyp
-          </TableHeaderColumn>
-          <TableHeaderColumn
-            dataField="mhz"
-            dataFormat={(cell, row) =>
-              linkCellFormat(cell, row, linkCellsProps.mHz, true)
-            }
-            filter={{ type: "TextFilter" }}
-          >
-            MHz
-          </TableHeaderColumn>
+          {startColumns.props.children}
           <TableHeaderColumn
             dataField="multipleks"
             dataFormat={(cell, row) =>
@@ -175,18 +114,7 @@ class Table extends React.Component {
           >
             Multipleks
           </TableHeaderColumn>
-          <TableHeaderColumn
-            dataField="obiekt"
-            dataFormat={(cell, row) =>
-              linkCellFormat(cell, row, linkCellsProps.obiekt)
-            }
-            filter={{ type: "TextFilter" }}
-          >
-            Obiekt nadawczy
-          </TableHeaderColumn>
-          <TableHeaderColumn dataField="nwoj" filter={{ type: "TextFilter" }}>
-            woj.
-          </TableHeaderColumn>
+          {endColumns.props.children}
           <TableHeaderColumn
             dataField="kanal_nazwa"
             dataFormat={(cell, row) =>
@@ -215,21 +143,14 @@ class Table extends React.Component {
             hover
             condensed
             pagination
-            keyField="id_nadajnik"
-            options={options}
+            options={tableOptions}
           >
             {table.props.children}
           </BootstrapTable>
         ) : (
           <div>
             <h3>Trwa pobieranie nadajnijków, proszę czekać</h3>
-            <div className="spinner">
-              <div className="rect1" />
-              <div className="rect2" />
-              <div className="rect3" />
-              <div className="rect4" />
-              <div className="rect5" />
-            </div>
+            <RPLoader />
           </div>
         )}
       </div>

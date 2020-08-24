@@ -1,9 +1,9 @@
 import React from "react";
 import { BootstrapTable, TableHeaderColumn } from "react-bootstrap-table";
 
+import { idColumn, mastColumn } from "./Table/Columns";
 import { linkCellFormat, linkCellsProps } from "../helpers/table";
 
-import "react-bootstrap-table/dist/react-bootstrap-table-all.min.css";
 import "../styles/LittleTable.css";
 
 class LittleTable extends React.Component {
@@ -136,9 +136,7 @@ class LittleTable extends React.Component {
     if (system === "fm") {
       table = (
         <div>
-          <TableHeaderColumn isKey dataField="id_nadajnik" hidden>
-            ID
-          </TableHeaderColumn>
+          {idColumn}
           <TableHeaderColumn dataField="mhz" width="15%">
             MHz
           </TableHeaderColumn>
@@ -151,22 +149,13 @@ class LittleTable extends React.Component {
           >
             Program
           </TableHeaderColumn>
-          <TableHeaderColumn
-            dataField="obiekt"
-            dataFormat={(cell, row) =>
-              linkCellFormat(cell, row, linkCellsProps.obiekt)
-            }
-          >
-            Obiekt nadawczy
-          </TableHeaderColumn>
+          {mastColumn}
         </div>
       );
     } else if (system === "dab" || system === "dvbt") {
       table = (
         <div>
-          <TableHeaderColumn isKey dataField="id_nadajnik" hidden>
-            ID
-          </TableHeaderColumn>
+          {idColumn}
           <TableHeaderColumn dataField="kanal_nazwa" width="15%">
             Kanał
           </TableHeaderColumn>
@@ -179,14 +168,8 @@ class LittleTable extends React.Component {
           >
             Multipleks
           </TableHeaderColumn>
-          <TableHeaderColumn
-            dataField="obiekt"
-            dataFormat={(cell, row) =>
-              linkCellFormat(cell, row, linkCellsProps.obiekt)
-            }
-          >
-            Obiekt nadawczy
-          </TableHeaderColumn>
+
+          {mastColumn}
         </div>
       );
     }

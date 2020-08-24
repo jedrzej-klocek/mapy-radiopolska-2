@@ -35,9 +35,7 @@ const MapMarker = ({
   isInterferences,
   interferences,
 }) => {
-  const isRadioChecked = (radio) => {
-    console.log(radio);
-  };
+  const isRadioChecked = (radio) => {};
 
   return (
     <Marker

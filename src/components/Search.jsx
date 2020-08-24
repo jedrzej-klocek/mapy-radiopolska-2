@@ -13,4 +13,4 @@ const Search = ({ onChange }) => (
   </div>
 );
 
-export default Search;
+export const RPSearch = React.memo(Search);

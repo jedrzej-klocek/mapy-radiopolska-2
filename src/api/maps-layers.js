@@ -43,21 +43,23 @@ const fetchKMLByMapHash = async (url) => {
 };
 
 export const fetchKMLsArray = async (elements, configuration) => {
-  const requests = elements.map((element) => {
-    if (isValidElement(element, configuration)) {
-      const url = `${REACT_APP_PROD_FILES_URL}/get/${configuration.cfg}/${element._mapahash}.kml`;
+  const requests = elements
+    .filter((el) => el.typ === configuration.typ)
+    .map((element) => {
+      if (isValidElement(element, configuration)) {
+        const url = `${REACT_APP_PROD_FILES_URL}/get/${configuration.cfg}/${element._mapahash}.kml`;
 
-      return fetchKMLByMapHash(url)
-        .then((response) => {
-          const bounds = mapKMLToBounds(response);
+        return fetchKMLByMapHash(url)
+          .then((response) => {
+            const bounds = mapKMLToBounds(response);
 
-          return { ...element, bounds };
-        })
-        .catch((e) => console.error(e));
-    }
+            return { ...element, bounds };
+          })
+          .catch((e) => console.error(e));
+      }
 
-    return "invalid map layer input parameters";
-  });
+      return "invalid map layer input parameters";
+    });
 
   return Promise.all(requests);
 };

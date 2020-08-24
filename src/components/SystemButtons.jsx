@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 
-import SystemButton from "./Button";
+import { RPSystemButton } from "./Button";
 
 const Buttons = ({ onSystemChange }) => {
   const [system, setSystem] = useState("fm");
@@ -11,23 +11,23 @@ const Buttons = ({ onSystemChange }) => {
 
   return (
     <>
-      <SystemButton
+      <RPSystemButton
         id="fm"
-        class={`system ${system === "fm" ? "focus" : ""}`}
+        ownClass={`system ${system === "fm" ? "focus" : ""}`}
         title="Zmień system na FM"
         value="FM"
         onSystemClick={setSystem}
       />
-      <SystemButton
+      <RPSystemButton
         id="dab"
-        class={`system ${system === "dab" ? "focus" : ""}`}
+        ownClass={`system ${system === "dab" ? "focus" : ""}`}
         title="Zmień system na DAB+"
         value="DAB+"
         onSystemClick={setSystem}
       />
-      <SystemButton
+      <RPSystemButton
         id="dvbt"
-        class={`system ${system === "dvbt" ? "focus" : ""}`}
+        ownClass={`system ${system === "dvbt" ? "focus" : ""}`}
         title="Zmień system na DVB-T"
         value="DVB-T"
         onSystemClick={setSystem}

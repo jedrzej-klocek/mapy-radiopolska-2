@@ -5,10 +5,10 @@ import { ToastContainer, toast } from "react-toastify";
 
 import "../styles/App.css";
 import Map from "./Map";
-import Table from "./Table/index";
+import Table from "./Table/Table";
 import LittleTable from "./LittleTable";
-import ConfigurationsBox from "./ConfigurationsBox";
-import PopUp from "./PopUp";
+import { RPConfigurationsBox } from "./ConfigurationsBox";
+import { RPShareUrl } from "./ShareUrl";
 import { RPInfo } from "./Info";
 
 import {
@@ -18,7 +18,7 @@ import {
 } from "../api/transmitters";
 import { generateUrl, parseQueryToState } from "../helpers/url";
 import { isValidSystem } from "../validators/url";
-import SystemButton from "./Button";
+import { RPSystemButton } from "./Button";
 import { SystemButtons } from "./SystemButtons";
 
 const logoIcon = require("../images/icons/logoIcon.png");
@@ -30,7 +30,6 @@ class App extends Component {
     super(props);
     this.state = {
       isShowingModal: false,
-      isShowingInfo: true,
       isShowingShare: false,
       selectedTransmitters: [],
       selectedSystemTransmitters: [],
@@ -38,7 +37,6 @@ class App extends Component {
       toDrawSelected: [],
       configurations: [],
       selectedConfiguration: null,
-      openConfiguration: false,
       showFullInfo: true,
       settings: {
         automaticZoom: true,
@@ -52,13 +50,11 @@ class App extends Component {
     };
     this.handleSystemClick = this.handleSystemClick.bind(this);
     this.handleShareClick = this.handleShareClick.bind(this);
-    this.handleInfoClick = this.handleInfoClick.bind(this);
     this.getConfigurations = this.getConfigurations.bind(this);
     this.getSelectedData = this.getSelectedData.bind(this);
     this.getDrawData = this.getDrawData.bind(this);
     this.getSelectedConfiguration = this.getSelectedConfiguration.bind(this);
     this.handleClose = this.handleClose.bind(this);
-    this.handleInfoClose = this.handleInfoClose.bind(this);
     this.openDialog = this.openDialog.bind(this);
     this.checkQueryString = this.checkQueryString.bind(this);
     this.handleSettingsChanged = this.handleSettingsChanged.bind(this);
@@ -141,6 +137,7 @@ class App extends Component {
   }
 
   handleSystemClick(id) {
+    console.log(id);
     const { selectedTransmitters, system } = this.state;
 
     if (system !== id) {
@@ -170,6 +167,7 @@ class App extends Component {
   }
 
   handleSettingsChanged(newState) {
+    console.log("settings");
     this.setState({ ...newState, isShowingShare: false });
   }
 
@@ -179,14 +177,6 @@ class App extends Component {
 
   handleClose() {
     this.setState({ isShowingModal: false });
-  }
-
-  handleInfoClose() {
-    this.setState({ isShowingInfo: false, showFullInfo: true });
-  }
-
-  handleInfoClick() {
-    this.setState({ isShowingInfo: true });
   }
 
   getSelectedData(dataFromTable) {
@@ -226,6 +216,7 @@ class App extends Component {
   }
 
   getSelectedConfiguration(dataFromConfiguration) {
+    console.log("selected conf");
     this.setState({
       selectedConfiguration: dataFromConfiguration,
       isShowingShare: false,
@@ -252,15 +243,13 @@ class App extends Component {
             aria-label="check station button"
             className="button checkStation"
             title="Wybierz stacje do narysowania pokrycia"
-            value=""
             onClick={this.openDialog}
           />
         </div>
         <div id="buttons_container" className="container buttons">
           {state.configurations.length ? (
-            <ConfigurationsBox
+            <RPConfigurationsBox
               system={state.system}
-              isOpen={state.openConfiguration}
               configurations={state.configurations}
               settings={state.settings}
               settingsCallback={this.handleSettingsChanged}
@@ -282,32 +271,19 @@ class App extends Component {
             />
           </Modal.Body>
         </Modal>
-        <Modal
-          show={state.isShowingInfo}
-          size="xl"
-          onHide={this.handleInfoClose}
-        >
-          <RPInfo showFull={state.showFullInfo} />
-        </Modal>
+
+        <RPInfo showFull={state.showFullInfo} />
+
         <div className="shareWrapper">
-          <SystemButton
+          <RPSystemButton
             id="share"
-            class="share"
+            ownClass="share"
             title="Pobierz link do udostępnienia"
             value=""
             onSystemClick={this.handleShareClick}
           />
         </div>
-        {state.isShowingShare ? <PopUp text={state.uri} /> : null}
-        <div className="infoWrapper">
-          <SystemButton
-            id="infoBtn"
-            class="info"
-            title="Informacje"
-            value="i"
-            onSystemClick={this.handleInfoClick}
-          />
-        </div>
+        {state.isShowingShare ? <RPShareUrl text={state.uri} /> : null}
         {state.selectedSystemTransmitters.length ? (
           <LittleTable
             system={state.system}

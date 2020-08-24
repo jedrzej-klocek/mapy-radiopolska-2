@@ -1,75 +1,49 @@
-import React, { Component } from "react";
-import "../styles/ConfigurationsBox.css";
+import React, { useState, useEffect } from "react";
 import { RPLegend } from "./Legend";
+import { configurationSettingsCheckboxes } from "../config/Configurations";
 
 import settingsIcon from "../images/baseline_settings_black_36dp.png";
+import "../styles/ConfigurationsBox.css";
 
-const settingsCheckboxesDesc = [
-  {
-    name: "drawDirectionalChar",
-    label: "Rysuj charakterystyki kierunkowe anten",
-  },
-  {
-    name: "automaticZoom",
-    label: "Automatyczny zoom i wyśrodkowanie map",
-  },
-  {
-    name: "drawMultiple",
-    label: "Zezwól na rysowanie wielu map pokrycia.",
-  },
-];
+const ConfigurationsBox = ({
+  system,
+  configurations,
+  settings,
+  settingsCallback,
+  selected,
+  callbackFromApp,
+}) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [stateSettings, setStateSettings] = useState(settings);
+  const [possibleConfigurations, setPossibleConfigurations] = useState([]);
+  const [checkedConfiguration, setCheckedConfiguration] = useState(null);
 
-class ConfigurationsBox extends Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      possibleConfigurations: [],
-      checkedConfiguration: null,
-      isOpen: false,
-      automaticZoom: props.settings.automaticZoom,
-      drawDirectionalChar: props.settings.drawDirectionalChar,
-      drawMultiple: props.settings.drawMultiple,
-    };
-    this.getPossibleConfiguration = this.getPossibleConfiguration.bind(this);
-    this.onConfigurationChanged = this.onConfigurationChanged.bind(this);
-    this.onSettingsChanged = this.onSettingsChanged.bind(this);
-    this.openConfiguration = this.openConfiguration.bind(this);
-  }
+  useEffect(() => {
+    getPossibleConfiguration();
+  }, [system]);
 
-  componentDidUpdate(prevProps) {
-    const { system } = this.props;
+  useEffect(() => {
+    callbackFromApp(checkedConfiguration);
+  }, [checkedConfiguration]);
 
-    if (system !== prevProps.system) {
-      this.getPossibleConfiguration(prevProps);
-    }
-  }
+  useEffect(() => {
+    settingsCallback({
+      settings: { ...stateSettings },
+    });
+  }, [stateSettings]);
 
-  componentDidMount() {
-    this.getPossibleConfiguration();
-  }
-
-  getPossibleConfiguration(prevProps = undefined) {
-    const { props } = this;
-
-    if (!prevProps || props.system !== prevProps.system || !props.selected) {
-      const possibleConfs = props.configurations.filter(
-        (configuration) => configuration.typ === props.system
+  const getPossibleConfiguration = () => {
+    if (system || !selected) {
+      const possibleConfs = configurations.filter(
+        (configuration) => configuration.typ === system
       );
 
-      this.setState(
-        {
-          possibleConfigurations: possibleConfs,
-          checkedConfiguration: possibleConfs[0],
-        },
-        () => props.callbackFromApp(possibleConfs[0])
-      );
+      setPossibleConfigurations(possibleConfs);
+      setCheckedConfiguration(possibleConfs[0]);
     }
-  }
+  };
 
-  possibleConfRadios() {
-    const { selected } = this.props;
-    const { possibleConfigurations } = this.state;
-
+  const possibleConfRadios = () => {
     return possibleConfigurations.map((configuration) => (
       <React.Fragment key={configuration.nazwa}>
         <label htmlFor={configuration.cfg}>
@@ -79,41 +53,32 @@ class ConfigurationsBox extends Component {
             name="configuration"
             checked={selected.cfg === configuration.cfg}
             value={configuration.cfg}
-            onChange={this.onConfigurationChanged}
+            onChange={onConfigurationChanged}
           />
           {configuration.nazwa}
         </label>
         <br />
       </React.Fragment>
     ));
-  }
+  };
 
-  onSettingsChanged(e) {
+  const onSettingsChanged = (e) => {
     const { target } = e;
     const value = target.type === "checkbox" ? target.checked : target.value;
 
-    this.setState({ [target.name]: value }, () => {
-      const { settingsCallback } = this.props;
-      const { automaticZoom, drawDirectionalChar, drawMultiple } = this.state;
+    setStateSettings({ ...stateSettings, [target.name]: value });
+  };
 
-      settingsCallback({
-        settings: { automaticZoom, drawDirectionalChar, drawMultiple },
-      });
-    });
-  }
-
-  settingsCheckboxes = () => {
-    const { state } = this;
-
-    return settingsCheckboxesDesc.map((checkbox) => (
+  const settingsCheckboxes = () => {
+    return configurationSettingsCheckboxes.map((checkbox) => (
       <React.Fragment key={checkbox.name}>
         <label key={checkbox.name} htmlFor={checkbox.name}>
           <input
             id={checkbox.name}
             type="checkbox"
             name={checkbox.name}
-            checked={state[checkbox.name] === true}
-            onChange={this.onSettingsChanged}
+            checked={settings[checkbox.name] === true}
+            onChange={onSettingsChanged}
           />
           {checkbox.label}
         </label>
@@ -122,80 +87,67 @@ class ConfigurationsBox extends Component {
     ));
   };
 
-  onConfigurationChanged(e) {
-    const { possibleConfigurations } = this.state;
-    const { callbackFromApp } = this.props;
-
+  const onConfigurationChanged = (e) => {
     const configur = possibleConfigurations.filter(
       (configuration) => configuration.cfg === e.target.value
     );
 
-    this.setState({ checkedConfiguration: configur[0] }, () => {
-      const { checkedConfiguration } = this.state;
+    setCheckedConfiguration(configur[0]);
+  };
 
-      callbackFromApp(checkedConfiguration);
-    });
-  }
+  const openConfiguration = () => {
+    setIsOpen(!isOpen);
+  };
 
-  openConfiguration() {
-    const { isOpen } = this.state;
-
-    this.setState({ isOpen: !isOpen });
-  }
-
-  render() {
-    const { state } = this;
-
-    return state.possibleConfigurations.length ? (
-      <div className="componentWidth">
-        {state.isOpen ? (
-          <div className={`confsBox ${state.isOpen}`}>
-            <div className="ButtonHeaderWrap">
-              <button
-                type="button"
-                onClick={this.openConfiguration}
-                className="confsButton"
-              >
-                <img
-                  src={settingsIcon}
-                  type="image/svg+xml"
-                  className={`Conf-logo ${state.isOpen}`}
-                  alt="Konfiguracja"
-                />
-              </button>
-              <b className="WhiteParagraph">Ustawienia</b>
-            </div>
-            <div className="confsWhiteBox">
-              <form>{this.possibleConfRadios()}</form>
-              <b>{state.checkedConfiguration.opis}</b> <br /> <br />
-              {this.settingsCheckboxes()}
-              <b className="label-margin-right" style={{ color: "red" }}>
-                UWAGA:{" "}
-              </b>
-              Może to spowodować spadek wydajności pracy Twojego urządzenia oraz
-              jakości obserwacji map pokrycia.
-            </div>
-          </div>
-        ) : (
-          <div className={`confsBox ${state.isOpen}`}>
+  return possibleConfigurations.length ? (
+    <div className="componentWidth">
+      {isOpen ? (
+        <div className={`confsBox ${isOpen}`}>
+          <div className="ButtonHeaderWrap">
             <button
               type="button"
-              onClick={this.openConfiguration}
+              onClick={openConfiguration}
               className="confsButton"
             >
               <img
                 src={settingsIcon}
                 type="image/svg+xml"
-                className={`Conf-logo ${state.isOpen}`}
+                className={`Conf-logo ${isOpen}`}
                 alt="Konfiguracja"
               />
             </button>
+            <b className="WhiteParagraph">Ustawienia</b>
           </div>
-        )}
-        <RPLegend legend={state.checkedConfiguration} />
-      </div>
-    ) : null;
-  }
-}
+          <div className="confsWhiteBox">
+            <form>{possibleConfRadios()}</form>
+            <b>{checkedConfiguration.opis}</b> <br /> <br />
+            {settingsCheckboxes()}
+            <b className="label-margin-right" style={{ color: "red" }}>
+              UWAGA:{" "}
+            </b>
+            Może to spowodować spadek wydajności pracy Twojego urządzenia oraz
+            jakości obserwacji map pokrycia.
+          </div>
+        </div>
+      ) : (
+        <div className={`confsBox ${isOpen}`}>
+          <button
+            type="button"
+            onClick={openConfiguration}
+            className="confsButton"
+          >
+            <img
+              src={settingsIcon}
+              type="image/svg+xml"
+              className={`Conf-logo ${isOpen}`}
+              alt="Konfiguracja"
+            />
+          </button>
+        </div>
+      )}
+      <RPLegend legend={checkedConfiguration} />
+    </div>
+  ) : null;
+};
 
-export default ConfigurationsBox;
+export const RPConfigurationsBox = React.memo(ConfigurationsBox);
