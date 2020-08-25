@@ -1,10 +1,10 @@
 import React from "react";
 import { BootstrapTable, TableHeaderColumn } from "react-bootstrap-table";
 
-import { idColumn, mastColumn } from "./Table/Columns";
-import { linkCellFormat, linkCellsProps } from "../helpers/table";
+import { idColumn, mastColumn } from "./Columns";
+import { linkCellFormat, linkCellsProps } from "../../helpers/table";
 
-import "../styles/LittleTable.css";
+import "../../styles/LittleTable.css";
 
 class LittleTable extends React.Component {
   constructor(props) {

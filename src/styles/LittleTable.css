@@ -28,7 +28,7 @@
   background-color: #d64a2b;
   position: absolute;
   border-style: hidden;
-  background-image: url('../images/button_up.png');
+  background-image: url("../images/button_up.png");
   background-size: 55%;
   background-position: center;
   background-repeat: no-repeat;
@@ -46,8 +46,12 @@
   animation: changeUpVerticalPosition 1s;
 }
 
+.littleTable th .filter {
+  display: none;
+}
+
 .littleTable.true .circleButton {
-  background-image: url('../images/button_down.png');
+  background-image: url("../images/button_down.png");
 }
 
 @keyframes changeUpVerticalPosition {
