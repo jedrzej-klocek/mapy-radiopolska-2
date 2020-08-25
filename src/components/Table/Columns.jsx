@@ -17,6 +17,7 @@ export const mastColumn = (
   <TableHeaderColumn
     dataField="obiekt"
     dataFormat={(cell, row) => linkCellFormat(cell, row, linkCellsProps.obiekt)}
+    filter={{ type: "TextFilter" }}
   >
     Obiekt nadawczy
   </TableHeaderColumn>

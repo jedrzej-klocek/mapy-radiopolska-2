@@ -55,7 +55,7 @@ const ConfigurationsBox = ({
             value={configuration.cfg}
             onChange={onConfigurationChanged}
           />
-          {configuration.nazwa}
+          <span>{configuration.nazwa}</span>
         </label>
         <br />
       </React.Fragment>
@@ -80,7 +80,7 @@ const ConfigurationsBox = ({
             checked={settings[checkbox.name] === true}
             onChange={onSettingsChanged}
           />
-          {checkbox.label}
+          <span>{checkbox.label}</span>
         </label>
         <br />
       </React.Fragment>

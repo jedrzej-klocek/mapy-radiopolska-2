@@ -5,8 +5,8 @@ import { ToastContainer, toast } from "react-toastify";
 
 import "../styles/App.css";
 import Map from "./Map";
-import Table from "./Table/Table";
-import LittleTable from "./LittleTable";
+import { RPTable } from "./Table/Table";
+import LittleTable from "./Table/LittleTable";
 import { RPConfigurationsBox } from "./ConfigurationsBox";
 import { RPShareUrl } from "./ShareUrl";
 import { RPInfo } from "./Info";
@@ -167,7 +167,6 @@ class App extends Component {
   }
 
   handleSettingsChanged(newState) {
-    console.log("settings");
     this.setState({ ...newState, isShowingShare: false });
   }
 
@@ -216,7 +215,6 @@ class App extends Component {
   }
 
   getSelectedConfiguration(dataFromConfiguration) {
-    console.log("selected conf");
     this.setState({
       selectedConfiguration: dataFromConfiguration,
       isShowingShare: false,
@@ -263,7 +261,7 @@ class App extends Component {
             <Modal.Title> Wybierz nadajniki</Modal.Title>
           </Modal.Header>
           <Modal.Body>
-            <Table
+            <RPTable
               system={state.system}
               callbackFromApp={this.getSelectedData}
               selected={state.selectedTransmitters}

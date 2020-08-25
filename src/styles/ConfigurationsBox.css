@@ -31,7 +31,7 @@
   animation: changeUpWidth 1s;
 }
 
-.confsBox label {
+.confsBox label span {
   padding-left: 5px;
 }
 
