@@ -18,7 +18,9 @@ import {
   shouldDrawLayers,
   shouldSetView,
   layersDifference,
+  parseCommaNumber,
 } from "../helpers/map";
+import { mapconfig as config } from "../config/Map";
 
 import "react-toastify/dist/ReactToastify.css";
 
@@ -27,48 +29,8 @@ import "leaflet/dist/leaflet.css";
 import "../styles/Map.css";
 
 const { BaseLayer } = LayersControl;
-const icon = require("../images/icons/transmitter_half.png");
-const gpsIcon = require("../images/icons/yagi_half.png");
 
 const { REACT_APP_PROD_FILES_URL } = process.env;
-
-const config = {};
-
-config.params = {
-  center: [52.1, 20.3],
-  zoomControl: false,
-  zoom: 7,
-  maxZoom: 18,
-  minZoom: 4,
-};
-config.tileLayer = {
-  uri: process.env.REACT_APP_TILE_PROVIDER_1_URL,
-  uri2: process.env.REACT_APP_TILE_PROVIDER_2_URL,
-  params: {
-    minZoom: 4,
-    maxZoom: 16,
-    osmAttribution:
-      'Map data © <a href="https://openstreetmap.org">OpenStreetMap</a> contributors',
-    topoAttribution:
-      'Map data © <a href="https://openstreetmap.org">OpenStreetMap</a> contributors, map style: © <a href="https://opentopomap.org">OpenTopoMap</a>',
-    id: "",
-    accessToken: "",
-  },
-};
-
-config.myIcon = L.icon({
-  iconUrl: icon,
-  iconSize: [30, 65],
-  // iconAnchor: [22, 94],
-  popupAnchor: [0, -35],
-});
-
-config.gpsIcon = L.icon({
-  iconUrl: gpsIcon,
-  iconSize: [30, 65],
-  // iconAnchor: [22, 94],
-  popupAnchor: [0, -30],
-});
 
 class MapLayer extends Component {
   mapRef = createRef(null);
@@ -82,11 +44,55 @@ class MapLayer extends Component {
       directionalChars: [],
       gpsPosition: null,
       layersIDs: [],
+      interferencesTransmitter: null,
+      interferencesDeviationArr: [],
     };
 
     this.mapNode = null;
     this.gpsChanged = this.gpsChanged.bind(this);
+    this.interferencesChanged = this.interferencesChanged.bind(this);
     this.checkGeoLocation = this.checkGeoLocation.bind(this);
+  }
+
+  interferencesChanged(el, arr) {
+    if (!arr.length) {
+      this.setState({
+        interferencesDeviationArr: arr,
+        interferencesTransmitter: null,
+      });
+    }
+
+    if (el && arr.length) {
+      this.setState(
+        {
+          interferencesDeviationArr: arr,
+          interferencesTransmitter: el,
+        },
+        () => {
+          this.drawInterferencesLayers(el, arr);
+        }
+      );
+    }
+  }
+
+  async drawInterferencesLayers(transmitter, deviationArr) {
+    let arr = [];
+
+    deviationArr.forEach((value) => {
+      const interferencedTrans = this.props.data.filter((el) => {
+        return (
+          parseCommaNumber(el.mhz) - value ===
+            parseCommaNumber(transmitter.mhz) ||
+          parseCommaNumber(el.mhz) + value === parseCommaNumber(transmitter.mhz)
+        );
+      });
+
+      arr = [...arr, ...interferencedTrans];
+    });
+
+    await fetchKMLsArray(arr, this.props.configuration).then((res) => {
+      this.addLayersToMap(res);
+    });
   }
 
   gpsChanged(pos) {
@@ -195,28 +201,12 @@ class MapLayer extends Component {
     this.setState({ directionalChars: [] });
   }
 
-  newDrawLayers() {
+  addLayersToMap(transmitters) {
     const { configuration } = this.props;
-    let { newSelectedTransmitters } = this.state;
-
-    let response = false;
-
-    if (newSelectedTransmitters.length >= 30) {
-      response = window.confirm(
-        `Czy na pewno chcesz wyświetlić ${newSelectedTransmitters.length} mapek? 
-        Grozi to utratą stabilności Twojej przeglądarki.
-        W przeciwnym wypadku zostanie narysowanych pierwszych 30 pozycji z listy`
-      );
-    }
-    if (response === false) {
-      newSelectedTransmitters = newSelectedTransmitters.slice(0, 30);
-    }
-
     const { layersIDs } = this.state;
-    const newLayersIDs = layersIDs;
 
     /* eslint no-underscore-dangle: 0 */
-    newSelectedTransmitters.forEach((element) => {
+    transmitters.forEach((element) => {
       const url = `${REACT_APP_PROD_FILES_URL}/get/${configuration.cfg}/${element._mapahash}.png`;
 
       fetch(url)
@@ -235,15 +225,34 @@ class MapLayer extends Component {
           const layer = L.imageOverlay(url, element.bounds, { opacity: 0.6 });
 
           this.layersGroup.addLayer(layer);
-          newLayersIDs.push({
+          layersIDs.push({
             [element.id_nadajnik]: { leafletId: layer._leaflet_id },
           });
         })
         .catch((e) => console.log(e));
     });
 
-    this.setState({ layersIDs: newLayersIDs }, () => {});
+    this.setState({ layersIDs }, () => {});
     /* eslint no-underscore-dangle: 1 */
+  }
+
+  newDrawLayers() {
+    let { newSelectedTransmitters } = this.state;
+
+    let response = false;
+
+    if (newSelectedTransmitters.length >= 30) {
+      response = window.confirm(
+        `Czy na pewno chcesz wyświetlić ${newSelectedTransmitters.length} mapek? 
+        Grozi to utratą stabilności Twojej przeglądarki.
+        W przeciwnym wypadku zostanie narysowanych pierwszych 30 pozycji z listy`
+      );
+    }
+    if (response === false) {
+      newSelectedTransmitters = newSelectedTransmitters.slice(0, 30);
+    }
+
+    this.addLayersToMap(newSelectedTransmitters);
   }
 
   drawDirectionalChars() {
@@ -367,8 +376,14 @@ class MapLayer extends Component {
                         element={element}
                         config={config}
                         system={this.props.system}
-                        isInterferences={!this.props.drawMultiple}
-                        interferences={this.props.interferences}
+                        isInterferences={
+                          (!this.props.drawMultiple &&
+                            state.interferencesTransmitter &&
+                            element.id_nadajnik ===
+                              state.interferencesTransmitter.id_nadajnik) ||
+                          !state.interferencesTransmitter
+                        }
+                        interferencesChanged={this.interferencesChanged}
                       />
                     ))
                 : null}

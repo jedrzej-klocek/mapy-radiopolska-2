@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { BootstrapTable, TableHeaderColumn } from "react-bootstrap-table";
 
 import { idColumn, mastColumn } from "./Columns";
@@ -6,52 +6,33 @@ import { linkCellFormat, linkCellsProps } from "../../helpers/table";
 
 import "../../styles/LittleTable.css";
 
-class LittleTable extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      selectedTransmitters: props.selected,
-      selectedIDs: [],
-      open: true,
-      addTransmiter: false,
-    };
-    this.updateSelectedIDs = this.updateSelectedIDs.bind(this);
-    this.handleClick = this.handleClick.bind(this);
-    this.handleAddTransmiterClick = this.handleAddTransmiterClick.bind(this);
-  }
+const LittleTable = ({
+  system,
+  selected,
+  data,
+  checkMultiple,
+  callbackFromApp,
+  addTransmitterClick,
+}) => {
+  const [open, setOpen] = useState(true);
+  const [selectedIDs, setSelectedIDs] = useState([]);
 
-  updateSelectedIDs() {
-    const { selected } = this.props;
-    const IDs = [];
+  useEffect(() => {
+    updateSelectedIDs();
+  }, [selected]);
 
-    selected.forEach((transmitter) => {
-      IDs.push(transmitter.id_nadajnik);
-    });
-    this.setState({
-      selectedIDs: IDs,
-      selectedTransmitters: selected,
-    });
-  }
+  const toggle = useCallback(() => {
+    setOpen(!open);
+  }, [open, setOpen]);
 
-  componentDidMount() {
-    this.updateSelectedIDs();
-  }
+  const updateSelectedIDs = () => {
+    const IDs = selected.map((transmitter) => transmitter.id_nadajnik);
 
-  componentDidUpdate(prevProps) {
-    const { selected, addTransmiter } = this.props;
+    setSelectedIDs(IDs);
+  };
 
-    if (selected !== prevProps.selected) {
-      this.updateSelectedIDs();
-    } else if (addTransmiter !== prevProps.addTransmiter) {
-      this.setState({ addTransmiter });
-    }
-  }
-
-  onDrawSelected(row, isSelected) {
-    const { addTransmiter, selectedTransmitters } = this.state;
-    const { callbackFromApp, checkMultiple } = this.props;
-
-    let tempArray = selectedTransmitters.slice();
+  const onDrawSelected = (row, isSelected) => {
+    let tempArray = [...selected];
 
     if (isSelected) {
       // add new object which was selected
@@ -66,17 +47,11 @@ class LittleTable extends React.Component {
       );
     }
 
-    this.setState({ selectedTransmitters: tempArray }, () => {
-      callbackFromApp(tempArray, addTransmiter);
-      this.updateSelectedIDs();
-    });
-  }
+    callbackFromApp(tempArray);
+  };
 
-  onDrawAllSelected(isSelected, rows) {
-    const { selectedTransmitters } = this.state;
-    const { callbackFromApp } = this.props;
-
-    let tempArray = selectedTransmitters.slice();
+  const onDrawAllSelected = (isSelected, rows) => {
+    let tempArray = [...selected];
 
     if (isSelected) {
       rows.forEach((element) => {
@@ -90,119 +65,92 @@ class LittleTable extends React.Component {
       });
     }
 
-    this.setState({ selectedTransmitters: tempArray }, () => {
-      callbackFromApp(tempArray);
-      this.updateSelectedIDs();
-    });
-  }
+    callbackFromApp(tempArray);
+  };
 
-  handleClick() {
-    const { open } = this.state;
+  const selectRowProp = checkMultiple
+    ? {
+        mode: "checkbox",
+        clickToSelect: true,
+        bgColor: "rgba(240, 129, 104, 0.7)",
+        onSelect: onDrawSelected,
+        onSelectAll: onDrawAllSelected,
+        selected: selectedIDs,
+      }
+    : {
+        mode: "radio",
+        clickToSelect: true,
+        bgColor: "rgba(240, 129, 104, 0.7)",
+        onSelect: onDrawSelected,
+        selected: selectedIDs,
+      };
+  let table = null;
 
-    this.setState({ open: !open }, () => {});
-  }
-
-  handleAddTransmiterClick() {
-    const { selectedTransmitters } = this.state;
-    const { callbackFromApp } = this.props;
-
-    this.setState({ addTransmiter: true }, () => {
-      callbackFromApp(selectedTransmitters, true);
-    });
-  }
-
-  render() {
-    const { checkMultiple, data, system } = this.props;
-    const { open, selectedIDs } = this.state;
-
-    const selectRowProp = checkMultiple
-      ? {
-          mode: "checkbox",
-          clickToSelect: true,
-          bgColor: "rgba(240, 129, 104, 0.7)",
-          onSelect: this.onDrawSelected.bind(this),
-          onSelectAll: this.onDrawAllSelected.bind(this),
-          selected: selectedIDs,
-        }
-      : {
-          mode: "radio",
-          clickToSelect: true,
-          bgColor: "rgba(240, 129, 104, 0.7)",
-          onSelect: this.onDrawSelected.bind(this),
-          selected: selectedIDs,
-        };
-    let table = null;
-
-    if (system === "fm") {
-      table = (
-        <div>
-          {idColumn}
-          <TableHeaderColumn dataField="mhz" width="15%">
-            MHz
-          </TableHeaderColumn>
-          <TableHeaderColumn
-            dataField="program"
-            dataFormat={(cell, row) =>
-              linkCellFormat(cell, row, linkCellsProps.station)
-            }
-            width="40%"
-          >
-            Program
-          </TableHeaderColumn>
-          {mastColumn}
-        </div>
-      );
-    } else if (system === "dab" || system === "dvbt") {
-      table = (
-        <div>
-          {idColumn}
-          <TableHeaderColumn dataField="kanal_nazwa" width="15%">
-            Kanał
-          </TableHeaderColumn>
-          <TableHeaderColumn
-            dataField="multipleks"
-            dataFormat={(cell, row) =>
-              linkCellFormat(cell, row, linkCellsProps.mux)
-            }
-            width="30%"
-          >
-            Multipleks
-          </TableHeaderColumn>
-
-          {mastColumn}
-        </div>
-      );
-    }
-
-    return data ? (
-      <div className={`littleTable ${open}`}>
-        <button
-          type="button"
-          aria-label="hide transmitters check table"
-          className="circleButton"
-          onClick={this.handleClick}
-        />
-        <BootstrapTable
-          data={data}
-          selectRow={selectRowProp}
-          striped
-          hover
-          condensed
+  if (system === "fm") {
+    table = (
+      <div>
+        {idColumn}
+        <TableHeaderColumn dataField="mhz" width="15%">
+          MHz
+        </TableHeaderColumn>
+        <TableHeaderColumn
+          dataField="program"
+          dataFormat={(cell, row) =>
+            linkCellFormat(cell, row, linkCellsProps.station)
+          }
+          width="40%"
         >
-          {table.props.children}
-        </BootstrapTable>
-        <div className="AddTransmitter">
-          <button
-            type="button"
-            className="button"
-            onClick={this.handleAddTransmiterClick}
-          >
-            Dodaj nadajnik
-          </button>
-        </div>
+          Program
+        </TableHeaderColumn>
+        {mastColumn}
       </div>
-    ) : null;
-  }
-}
+    );
+  } else if (system === "dab" || system === "dvbt") {
+    table = (
+      <div>
+        {idColumn}
+        <TableHeaderColumn dataField="kanal_nazwa" width="15%">
+          Kanał
+        </TableHeaderColumn>
+        <TableHeaderColumn
+          dataField="multipleks"
+          dataFormat={(cell, row) =>
+            linkCellFormat(cell, row, linkCellsProps.mux)
+          }
+          width="30%"
+        >
+          Multipleks
+        </TableHeaderColumn>
 
-export default LittleTable;
+        {mastColumn}
+      </div>
+    );
+  }
+
+  return data ? (
+    <div className={`littleTable ${open}`}>
+      <button
+        type="button"
+        aria-label="hide transmitters check table"
+        className="circleButton"
+        onClick={toggle}
+      />
+      <BootstrapTable
+        data={data}
+        selectRow={selectRowProp}
+        striped
+        hover
+        condensed
+      >
+        {table.props.children}
+      </BootstrapTable>
+      <div className="AddTransmitter">
+        <button type="button" className="button" onClick={addTransmitterClick}>
+          Dodaj nadajnik
+        </button>
+      </div>
+    </div>
+  ) : null;
+};
+
+export const RPLittleTable = React.memo(LittleTable);

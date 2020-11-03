@@ -1,11 +1,11 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Marker, Popup } from "react-leaflet";
 
 import "../styles/Marker.css";
 
 const { REACT_APP_PROD_LIST_URL } = process.env;
 
-const radioButtons = [
+const checkboxes = [
   {
     value: 0,
     name: "ta sama częstotliwość",
@@ -33,9 +33,26 @@ const MapMarker = ({
   config,
   system,
   isInterferences,
-  interferences,
+  interferencesChanged,
 }) => {
-  const isRadioChecked = (radio) => {};
+  const [interferencesArr, setInterferencesArr] = useState([]);
+
+  const onCheckboxChange = (event) => {
+    let newArr = [...interferencesArr];
+
+    if (event.target.checked) {
+      newArr.push(+event.target.value);
+    } else {
+      newArr = newArr.filter((el) => el !== +event.target.value);
+    }
+
+    setInterferencesArr(newArr);
+    interferencesChanged(element, newArr);
+  };
+
+  const isCheckboxChecked = (checkbox) => {
+    return interferencesArr.includes(checkbox.value);
+  };
 
   return (
     <Marker
@@ -74,19 +91,22 @@ const MapMarker = ({
         <br />
         {`Wys. umieszcz. nadajnika: ${element.antena_npt}m n.p.t`}
         <br />
-        {isInterferences && interferences.byTransmitter === null ? (
+        {isInterferences ? (
           <form>
             <b>Sprawdź interferencje: </b>
-            {radioButtons.map((radio) => (
-              <div className="radio" key={`interferences-${radio.value}`}>
-                <label htmlFor={`${element.id_nadajnik}-radio-${radio.value}`}>
+            {checkboxes.map((checkbox) => (
+              <div className="checkbox" key={`interferences-${checkbox.value}`}>
+                <label
+                  htmlFor={`${element.id_nadajnik}-checkbox-${checkbox.value}`}
+                >
                   <input
-                    id={`${element.id_nadajnik}-radio-${radio.value}`}
-                    type="radio"
-                    value={radio.value}
-                    checked={isRadioChecked(radio)}
+                    id={`${element.id_nadajnik}-checkbox-${checkbox.value}`}
+                    type="checkbox"
+                    value={checkbox.value}
+                    checked={isCheckboxChecked(checkbox)}
+                    onChange={onCheckboxChange}
                   />
-                  <span>{radio.name}</span>
+                  <span>{checkbox.name}</span>
                 </label>
               </div>
             ))}

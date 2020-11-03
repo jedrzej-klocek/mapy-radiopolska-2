@@ -6,7 +6,7 @@ import { ToastContainer, toast } from "react-toastify";
 import "../styles/App.css";
 import Map from "./Map";
 import { RPTable } from "./Table/Table";
-import LittleTable from "./Table/LittleTable";
+import { RPLittleTable } from "./Table/LittleTable";
 import { RPConfigurationsBox } from "./ConfigurationsBox";
 import { RPShareUrl } from "./ShareUrl";
 import { RPInfo } from "./Info";
@@ -42,10 +42,6 @@ class App extends Component {
         automaticZoom: true,
         drawMultiple: false,
         drawDirectionalChar: true,
-      },
-      interferences: {
-        byTransmitter: null,
-        byFrequency: 0,
       },
     };
     this.handleSystemClick = this.handleSystemClick.bind(this);
@@ -203,11 +199,10 @@ class App extends Component {
     });
   }
 
-  getDrawData(dataFromLittleTable, openTable) {
+  getDrawData(dataFromLittleTable) {
     this.setState(
       {
         toDrawSelected: dataFromLittleTable,
-        isShowingModal: openTable,
         isShowingShare: false,
       },
       () => {}
@@ -283,13 +278,13 @@ class App extends Component {
         </div>
         {state.isShowingShare ? <RPShareUrl text={state.uri} /> : null}
         {state.selectedSystemTransmitters.length ? (
-          <LittleTable
+          <RPLittleTable
             system={state.system}
-            callbackFromApp={this.getDrawData}
             selected={state.toDrawSelected}
             data={state.selectedSystemTransmitters}
             checkMultiple={state.settings.drawMultiple}
-            addTransmiter={state.isShowingModal}
+            callbackFromApp={this.getDrawData}
+            addTransmitterClick={this.openDialog}
           />
         ) : null}
         <Map
@@ -300,7 +295,7 @@ class App extends Component {
           system={state.system}
           automaticZoom={state.settings.automaticZoom}
           drawMultiple={state.settings.drawMultiple}
-          interferences={state.interferences}
+          data={data}
         />
         <ToastContainer autoClose={5000} />
       </div>
