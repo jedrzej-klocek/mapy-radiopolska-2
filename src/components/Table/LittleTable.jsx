@@ -17,19 +17,19 @@ const LittleTable = ({
   const [open, setOpen] = useState(true);
   const [selectedIDs, setSelectedIDs] = useState([]);
 
+  const updateSelectedIDs = useCallback(() => {
+    const IDs = selected.map((transmitter) => transmitter.id_nadajnik);
+
+    setSelectedIDs(IDs);
+  }, [selected]);
+
   useEffect(() => {
     updateSelectedIDs();
-  }, [selected]);
+  }, [selected, updateSelectedIDs]);
 
   const toggle = useCallback(() => {
     setOpen(!open);
   }, [open, setOpen]);
-
-  const updateSelectedIDs = () => {
-    const IDs = selected.map((transmitter) => transmitter.id_nadajnik);
-
-    setSelectedIDs(IDs);
-  };
 
   const onDrawSelected = (row, isSelected) => {
     let tempArray = [...selected];
@@ -51,17 +51,11 @@ const LittleTable = ({
   };
 
   const onDrawAllSelected = (isSelected, rows) => {
-    let tempArray = [...selected];
+    let tempArray = [];
 
     if (isSelected) {
       rows.forEach((element) => {
         tempArray.push(element);
-      });
-    } else {
-      rows.forEach((element) => {
-        tempArray = tempArray.filter(
-          (obj) => obj.id_nadajnik !== element.id_nadajnik
-        );
       });
     }
 

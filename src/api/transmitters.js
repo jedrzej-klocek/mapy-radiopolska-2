@@ -6,13 +6,15 @@ export const fetchTransmittersBySystem = async (system) => {
   const response = await fetch(dataUrl)
     .then((res) => res.json())
     .catch(() => {
-      throw `Coś poszło nie tak podczas połączenia z serwerem nadajników dla systemu ${system}.`;
+      throw new Error(
+        `Coś poszło nie tak podczas połączenia z serwerem nadajników dla systemu ${system}.`
+      );
     });
 
   if (response.success && response.data.length) {
     return response.data || [];
   }
-  throw "Brak połączenia z serwerem nadajników.";
+  throw new Error("Brak połączenia z serwerem nadajników.");
 };
 
 export const fetchAPIConfigurations = async (configurationKey) => {
@@ -21,7 +23,9 @@ export const fetchAPIConfigurations = async (configurationKey) => {
   const response = await fetch(dataUrl)
     .then((res) => res.json())
     .catch(() => {
-      throw "Coś poszło nie tak podczas połączenia z serwerem konfiguracji map.";
+      throw new Error(
+        "Coś poszło nie tak podczas połączenia z serwerem konfiguracji map."
+      );
     });
 
   if (response.success) {
@@ -32,7 +36,7 @@ export const fetchAPIConfigurations = async (configurationKey) => {
 
     return { selectedConfiguration, configurations };
   }
-  throw "Brak połączenia z serwerem konfiguracji map.";
+  throw new Error("Brak połączenia z serwerem konfiguracji map.");
 };
 
 const fetchTransmitterById = async (url) => {

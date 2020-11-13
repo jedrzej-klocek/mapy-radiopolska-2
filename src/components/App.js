@@ -1,4 +1,4 @@
-import React, { Component } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import { Modal } from "react-bootstrap";
 import { parse } from "qs";
 import { ToastContainer, toast } from "react-toastify";
@@ -23,284 +23,247 @@ import { SystemButtons } from "./SystemButtons";
 
 const logoIcon = require("../images/icons/logoIcon.png");
 
-let data = [];
+const App = () => {
+  const [isShowingModal, setIsShowingModal] = useState(false);
+  const [isShowingShare, setIsShowingShare] = useState(false);
+  const [toDrawSelected, setToDrawSelected] = useState([]);
+  const [selectedTransmitters, setSelectedTransmitters] = useState([]);
+  const [selectedSystemTransmitters, setSelectedSystemTransmitters] = useState(
+    []
+  );
+  const [system, setSystem] = useState("fm");
+  const [shareUrl, setShareUrl] = useState(null);
+  const [showFullInfo, setShowFullInfo] = useState(true);
+  const [selectedConf, setSelectedConf] = useState(null);
+  const [settings, setSettings] = useState({
+    automaticZoom: true,
+    drawMultiple: false,
+    drawDirectionalChar: true,
+  });
 
-class App extends Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      isShowingModal: false,
-      isShowingShare: false,
-      selectedTransmitters: [],
-      selectedSystemTransmitters: [],
-      system: null,
-      toDrawSelected: [],
-      configurations: [],
-      selectedConfiguration: null,
-      showFullInfo: true,
-      settings: {
-        automaticZoom: true,
-        drawMultiple: false,
-        drawDirectionalChar: true,
-      },
-    };
-    this.handleSystemClick = this.handleSystemClick.bind(this);
-    this.handleShareClick = this.handleShareClick.bind(this);
-    this.getConfigurations = this.getConfigurations.bind(this);
-    this.getSelectedData = this.getSelectedData.bind(this);
-    this.getDrawData = this.getDrawData.bind(this);
-    this.getSelectedConfiguration = this.getSelectedConfiguration.bind(this);
-    this.handleClose = this.handleClose.bind(this);
-    this.openDialog = this.openDialog.bind(this);
-    this.checkQueryString = this.checkQueryString.bind(this);
-    this.handleSettingsChanged = this.handleSettingsChanged.bind(this);
-  }
+  const [data, setData] = useState([]);
+  const [configurations, setConfigurations] = useState([]);
 
-  componentDidMount() {
+  const getConfigurations = useCallback(async (configurationKey = "fm-std") => {
+    try {
+      const {
+        configurations,
+        selectedConfiguration,
+      } = await fetchAPIConfigurations(configurationKey);
+
+      setSelectedConf(selectedConfiguration);
+      setConfigurations(configurations);
+    } catch (e) {
+      toast.error(e);
+    }
+  }, []);
+
+  const fetchConfiguration = useCallback(
+    (configurationString) => {
+      getConfigurations(configurationString);
+    },
+    [getConfigurations]
+  );
+
+  const checkQueryString = useCallback(
+    (query) => {
+      if (!Object.keys(query).length || !query.sys) {
+        window.location.href = "/";
+      }
+
+      const parsedUrl = parseQueryToState(query);
+
+      setSettings(parsedUrl.settings);
+      setSystem(parsedUrl.system);
+      setShowFullInfo(parsedUrl.showFullInfo);
+
+      if (query.sys && isValidSystem(query.sys)) {
+        fetchTransmittersArray(parsedUrl.ids, query.sys).then(
+          (transmitters) => {
+            // removing undefined when something was wrong
+            const filteredTransmitters = transmitters.filter((tra) => !!tra);
+
+            if (filteredTransmitters.length > 0) {
+              setSelectedSystemTransmitters(filteredTransmitters);
+              setSelectedTransmitters(filteredTransmitters);
+              setToDrawSelected([filteredTransmitters[0]]);
+            }
+          }
+        );
+      } else {
+        console.error("Error: niewłaściwe parametry wejściowe");
+        getConfigurations();
+      }
+
+      if (query && query.cfg) {
+        fetchConfiguration(query.cfg);
+      } else {
+        getConfigurations();
+      }
+    },
+    [fetchConfiguration, getConfigurations]
+  );
+
+  useEffect(() => {
     const { location } = window;
 
     if (location.search && location.search.length) {
       if (location.search.split("?").length > 1) {
-        this.checkQueryString(parse(location.search.split("?")[1]));
+        checkQueryString(parse(location.search.split("?")[1]));
       }
     } else {
-      this.getConfigurations();
-      this.setDefaultSystem();
+      getConfigurations();
     }
-  }
+  }, [checkQueryString, getConfigurations]);
 
-  async componentDidUpdate(prevProps, prevStates) {
-    const { system } = this.state;
-
-    if (system !== prevStates.system) {
-      try {
-        data = await fetchTransmittersBySystem(system);
-      } catch (e) {
-        toast.error(e);
-      }
-    }
-  }
-
-  async getConfigurations(configurationKey = "fm-std") {
+  const fetchData = useCallback(async () => {
     try {
-      const newState = await fetchAPIConfigurations(configurationKey);
+      const response = await fetchTransmittersBySystem(system);
 
-      this.setState({ ...newState }, () => {});
+      setData(response);
     } catch (e) {
       toast.error(e);
     }
-  }
+  }, [system]);
 
-  checkQueryString(query) {
-    if (!Object.keys(query).length || !query.sys) {
-      window.location.href = "/";
-    }
-    this.setState({ ...parseQueryToState(query) }, () => {
-      const ids = query.tra.split(",");
+  useEffect(() => {
+    fetchData();
+  }, [system, fetchData]);
 
-      if (query.sys && isValidSystem(query.sys)) {
-        fetchTransmittersArray(ids, query.sys).then((transmitters) => {
-          // removing undefined when something was wrong
-          const filteredTransmitters = transmitters.filter((tra) => !!tra);
+  const handleSystemClick = useCallback((id) => {
+    setSystem(id);
+  }, []);
 
-          if (filteredTransmitters.length > 0) {
-            this.setState({
-              selectedSystemTransmitters: filteredTransmitters,
-              selectedTransmitters: filteredTransmitters,
-              toDrawSelected: [filteredTransmitters[0]],
-            });
-          }
-        });
-      } else {
-        console.error("Error: niewłaściwe parametry wejściowe");
-        this.getConfigurations();
-        this.setDefaultSystem();
-      }
-    });
-    if (query && query.cfg) {
-      this.setConfiguration(query.cfg);
-    } else {
-      this.getConfigurations();
-    }
-  }
-
-  setDefaultSystem() {
-    this.setState({ system: "fm" });
-  }
-
-  setConfiguration(configurationString) {
-    this.getConfigurations(configurationString);
-  }
-
-  handleSystemClick(id) {
-    console.log(id);
-    const { selectedTransmitters, system } = this.state;
-
-    if (system !== id) {
-      data = [];
-    }
-
-    const currentTransmitters = [];
-
-    selectedTransmitters.forEach((element) => {
-      if (element.typ === id) {
-        currentTransmitters.push(element);
-      }
-    });
-    this.setState(
-      { system: id, selectedSystemTransmitters: currentTransmitters },
-      () => {}
+  const handleShareClick = useCallback(() => {
+    setShareUrl(
+      generateUrl({
+        selectedConf,
+        toDrawSelected,
+        system,
+        settings,
+      })
     );
-  }
+    setIsShowingShare(!isShowingShare);
+  }, [selectedConf, toDrawSelected, system, settings, isShowingShare]);
 
-  handleShareClick() {
-    const url = generateUrl(this.state);
+  const handleSettingsChanged = useCallback(({ settings }) => {
+    setSettings(settings);
+  }, []);
 
-    this.setState((prevState) => ({
-      uri: url,
-      isShowingShare: !prevState.isShowingShare,
-    }));
-  }
+  const openDialog = useCallback(() => {
+    setIsShowingModal(true);
+  }, []);
 
-  handleSettingsChanged(newState) {
-    this.setState({ ...newState, isShowingShare: false });
-  }
+  const handleClose = useCallback(() => {
+    setIsShowingModal(false);
+  }, []);
 
-  openDialog() {
-    this.setState({ isShowingModal: true });
-  }
-
-  handleClose() {
-    this.setState({ isShowingModal: false });
-  }
-
-  getSelectedData(dataFromTable) {
-    this.setState({ selectedTransmitters: dataFromTable }, () => {
-      const { selectedTransmitters, system, toDrawSelected } = this.state;
+  const getSelectedData = useCallback(
+    (dataFromTable) => {
       const currentTransmitters = [];
 
-      selectedTransmitters.forEach((element) => {
+      dataFromTable.forEach((element) => {
         if (element.typ === system) {
           currentTransmitters.push(element);
         }
       });
-      const intersection = currentTransmitters.filter((transmitter) =>
-        toDrawSelected.includes(transmitter)
-      );
 
-      this.setState(
-        {
-          selectedSystemTransmitters: currentTransmitters,
-          toDrawSelected: intersection,
-          isShowingShare: false,
-        },
-        () => {}
-      );
-    });
-  }
+      setSelectedTransmitters(dataFromTable);
+      setSelectedSystemTransmitters(currentTransmitters);
+      setIsShowingShare(false);
+    },
+    [system]
+  );
 
-  getDrawData(dataFromLittleTable) {
-    this.setState(
-      {
-        toDrawSelected: dataFromLittleTable,
-        isShowingShare: false,
-      },
-      () => {}
-    );
-  }
+  const getDrawData = useCallback((dataFromLittleTable) => {
+    setToDrawSelected(dataFromLittleTable);
+    setIsShowingShare(false);
+  }, []);
 
-  getSelectedConfiguration(dataFromConfiguration) {
-    this.setState({
-      selectedConfiguration: dataFromConfiguration,
-      isShowingShare: false,
-    });
-  }
+  const getSelectedConfiguration = useCallback((dataFromConfiguration) => {
+    setSelectedConf(dataFromConfiguration);
+    setIsShowingShare(false);
+  }, []);
 
-  render() {
-    const domain = window.location.origin;
-
-    const { state } = this;
-
-    return (
-      <div id="gridId" className="grid">
-        <div id="systems_container" className="container systems">
-          <SystemButtons onSystemChange={this.handleSystemClick} />
-        </div>
-        <a href={domain}>
-          <img id="home" className="button home" alt="Odswiez" src={logoIcon} />
-        </a>
-        <div className="stationsWrapper ButtonWrapper">
-          <button
-            id="stations"
-            type="button"
-            aria-label="check station button"
-            className="button checkStation"
-            title="Wybierz stacje do narysowania pokrycia"
-            onClick={this.openDialog}
-          />
-        </div>
-        <div id="buttons_container" className="container buttons">
-          {state.configurations.length ? (
-            <RPConfigurationsBox
-              system={state.system}
-              configurations={state.configurations}
-              settings={state.settings}
-              settingsCallback={this.handleSettingsChanged}
-              selected={state.selectedConfiguration}
-              callbackFromApp={this.getSelectedConfiguration}
-            />
-          ) : null}
-        </div>
-        <Modal show={state.isShowingModal} size="xl" onHide={this.handleClose}>
-          <Modal.Header closeButton>
-            <Modal.Title> Wybierz nadajniki</Modal.Title>
-          </Modal.Header>
-          <Modal.Body>
-            <RPTable
-              system={state.system}
-              callbackFromApp={this.getSelectedData}
-              selected={state.selectedTransmitters}
-              data={data}
-            />
-          </Modal.Body>
-        </Modal>
-
-        <RPInfo showFull={state.showFullInfo} />
-
-        <div className="shareWrapper">
-          <RPSystemButton
-            id="share"
-            ownClass="share"
-            title="Pobierz link do udostępnienia"
-            value=""
-            onSystemClick={this.handleShareClick}
-          />
-        </div>
-        {state.isShowingShare ? <RPShareUrl text={state.uri} /> : null}
-        {state.selectedSystemTransmitters.length ? (
-          <RPLittleTable
-            system={state.system}
-            selected={state.toDrawSelected}
-            data={state.selectedSystemTransmitters}
-            checkMultiple={state.settings.drawMultiple}
-            callbackFromApp={this.getDrawData}
-            addTransmitterClick={this.openDialog}
+  return (
+    <div id="gridId" className="grid">
+      <div id="systems_container" className="container systems">
+        <SystemButtons onSystemChange={handleSystemClick} />
+      </div>
+      <a href={"/"}>
+        <img id="home" className="button home" alt="Odswiez" src={logoIcon} />
+      </a>
+      <div className="stationsWrapper ButtonWrapper">
+        <button
+          id="stations"
+          type="button"
+          aria-label="check station button"
+          className="button checkStation"
+          title="Wybierz stacje do narysowania pokrycia"
+          onClick={openDialog}
+        />
+      </div>
+      <div id="buttons_container" className="container buttons">
+        {configurations.length ? (
+          <RPConfigurationsBox
+            system={system}
+            configurations={configurations}
+            settings={settings}
+            settingsCallback={handleSettingsChanged}
+            selected={selectedConf}
+            callbackFromApp={getSelectedConfiguration}
           />
         ) : null}
-        <Map
-          selectedTransmitters={state.toDrawSelected}
-          selectedMarkers={state.selectedSystemTransmitters}
-          configuration={state.selectedConfiguration}
-          directional={state.settings.drawDirectionalChar}
-          system={state.system}
-          automaticZoom={state.settings.automaticZoom}
-          drawMultiple={state.settings.drawMultiple}
-          data={data}
-        />
-        <ToastContainer autoClose={5000} />
       </div>
-    );
-  }
-}
+      <Modal show={isShowingModal} size="xl" onHide={handleClose}>
+        <Modal.Header closeButton>
+          <Modal.Title> Wybierz nadajniki</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <RPTable
+            system={system}
+            callbackFromApp={getSelectedData}
+            selected={selectedTransmitters}
+            data={data}
+          />
+        </Modal.Body>
+      </Modal>
 
-export default App;
+      <RPInfo showFull={showFullInfo} />
+
+      <div className="shareWrapper">
+        <RPSystemButton
+          id="share"
+          ownClass="share"
+          title="Pobierz link do udostępnienia"
+          value=""
+          onSystemClick={handleShareClick}
+        />
+      </div>
+      {isShowingShare ? <RPShareUrl text={shareUrl} /> : null}
+      {selectedSystemTransmitters.length ? (
+        <RPLittleTable
+          system={system}
+          selected={toDrawSelected}
+          data={selectedSystemTransmitters}
+          checkMultiple={settings.drawMultiple}
+          callbackFromApp={getDrawData}
+          addTransmitterClick={openDialog}
+        />
+      ) : null}
+      <Map
+        selectedTransmitters={toDrawSelected}
+        selectedMarkers={selectedSystemTransmitters}
+        configuration={selectedConf}
+        directional={settings.drawDirectionalChar}
+        system={system}
+        automaticZoom={settings.automaticZoom}
+        drawMultiple={settings.drawMultiple}
+        data={data}
+      />
+      <ToastContainer autoClose={5000} />
+    </div>
+  );
+};
+
+export const MemoApp = React.memo(App);

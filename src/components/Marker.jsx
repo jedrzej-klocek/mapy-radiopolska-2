@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useCallback, useState } from "react";
 import { Marker, Popup } from "react-leaflet";
 
 import "../styles/Marker.css";
@@ -37,18 +37,21 @@ const MapMarker = ({
 }) => {
   const [interferencesArr, setInterferencesArr] = useState([]);
 
-  const onCheckboxChange = (event) => {
-    let newArr = [...interferencesArr];
+  const onCheckboxChange = useCallback(
+    (event) => {
+      let newArr = [...interferencesArr];
 
-    if (event.target.checked) {
-      newArr.push(+event.target.value);
-    } else {
-      newArr = newArr.filter((el) => el !== +event.target.value);
-    }
+      if (event.target.checked) {
+        newArr.push(+event.target.value);
+      } else {
+        newArr = newArr.filter((el) => el !== +event.target.value);
+      }
 
-    setInterferencesArr(newArr);
-    interferencesChanged(element, newArr);
-  };
+      setInterferencesArr(newArr);
+      interferencesChanged(element, newArr);
+    },
+    [interferencesChanged, interferencesArr, element]
+  );
 
   const isCheckboxChecked = (checkbox) => {
     return interferencesArr.includes(checkbox.value);
@@ -65,7 +68,7 @@ const MapMarker = ({
         {element.skrot || ""}
         <a
           target="_blank"
-          rel="noreferrer"
+          rel="noopener noreferrer"
           href={`${REACT_APP_PROD_LIST_URL}/obiekt/${element.id_obiekt}`}
         >
           {element.obiekt || ""}

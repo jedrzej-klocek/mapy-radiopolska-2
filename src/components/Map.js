@@ -207,7 +207,7 @@ class MapLayer extends Component {
 
     /* eslint no-underscore-dangle: 0 */
     transmitters.forEach((element) => {
-      const url = `${REACT_APP_PROD_FILES_URL}/get/${configuration.cfg}/${element._mapahash}.png`;
+      const url = `${REACT_APP_PROD_FILES_URL}/get/${configuration.cfg}/${element["_mapahash"]}.png`;
 
       fetch(url)
         .then((res) => {
@@ -226,7 +226,7 @@ class MapLayer extends Component {
 
           this.layersGroup.addLayer(layer);
           layersIDs.push({
-            [element.id_nadajnik]: { leafletId: layer._leaflet_id },
+            [element.id_nadajnik]: { leafletId: layer["_leaflet_id"] },
           });
         })
         .catch((e) => console.log(e));
