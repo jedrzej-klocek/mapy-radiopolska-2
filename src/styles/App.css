@@ -61,6 +61,16 @@ a {
   font-size: 14px;
 }
 
+.react-bs-table tr td:nth-child(1),
+.react-bs-table tr th:nth-child(1) {
+  padding: 4px;
+}
+
+.react-bs-table tr td:nth-child(1) input,
+.react-bs-table tr th:nth-child(1) input {
+  width: 14px;
+}
+
 .react-bs-table tr td:nth-child(3) {
   padding: 1px !important;
 }

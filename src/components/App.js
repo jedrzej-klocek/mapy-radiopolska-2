@@ -256,9 +256,9 @@ const App = () => {
         selectedMarkers={selectedSystemTransmitters}
         configuration={selectedConf}
         directional={settings.drawDirectionalChar}
-        system={system}
         automaticZoom={settings.automaticZoom}
         drawMultiple={settings.drawMultiple}
+        system={system}
         data={data}
       />
       <ToastContainer autoClose={5000} />

@@ -1,5 +1,6 @@
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useState, useMemo } from "react";
 import { Marker, Popup } from "react-leaflet";
+import { getDeviation } from "../helpers/marker";
 
 import "../styles/Marker.css";
 
@@ -31,11 +32,21 @@ const checkboxes = [
 const MapMarker = ({
   element,
   config,
+  drawMultiple,
   system,
-  isInterferences,
   interferencesChanged,
+  interferenceFrom,
 }) => {
   const [interferencesArr, setInterferencesArr] = useState([]);
+
+  const isInterferences = useMemo(() => {
+    if (drawMultiple) return false;
+
+    return (
+      !interferenceFrom ||
+      (interferenceFrom && element.id_nadajnik === interferenceFrom.id_nadajnik)
+    );
+  }, [drawMultiple, element, interferenceFrom]);
 
   const onCheckboxChange = useCallback(
     (event) => {
@@ -57,10 +68,43 @@ const MapMarker = ({
     return interferencesArr.includes(checkbox.value);
   };
 
+  const switchIconPath = useCallback(() => {
+    const deviation = getDeviation(interferenceFrom, element);
+    let icon = config.icon;
+
+    if (
+      interferenceFrom &&
+      element.id_nadajnik === interferenceFrom.id_nadajnik
+    )
+      return icon;
+
+    switch (deviation) {
+      case 0.4:
+        icon = config.greenIcon;
+        break;
+      case 0.3:
+        icon = config.yellowIcon;
+        break;
+      case 0.2:
+        icon = config.orangeIcon;
+        break;
+      case 0.1:
+        icon = config.deepOrangeIcon;
+        break;
+      case 0:
+        icon = config.redIcon;
+        break;
+      default:
+        break;
+    }
+
+    return icon;
+  }, [interferenceFrom, config, element]);
+
   return (
     <Marker
       position={[element.szerokosc, element.dlugosc]}
-      icon={config.myIcon}
+      icon={switchIconPath()}
       className="transmitter_marker"
       zIndexOffset={2000}
     >

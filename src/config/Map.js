@@ -1,5 +1,10 @@
 import L from "leaflet";
 const icon = require("../images/icons/transmitter_half.png");
+const greenIcon = require("../images/icons/transmitter_half_green.png");
+const redIcon = require("../images/icons/transmitter_half_red.png");
+const yellowIcon = require("../images/icons/transmitter_half_yellow.png");
+const orangeIcon = require("../images/icons/transmitter_half_orange.png");
+const deepOrangeIcon = require("../images/icons/transmitter_half_deep_orange.png");
 const gpsIcon = require("../images/icons/yagi_half.png");
 
 const config = {};
@@ -27,12 +32,19 @@ config.tileLayer = {
   },
 };
 
-config.myIcon = L.icon({
+const radioMastObject = {
   iconUrl: icon,
   iconSize: [30, 65],
   // iconAnchor: [22, 94],
   popupAnchor: [0, -35],
-});
+};
+
+config.icon = L.icon(radioMastObject);
+config.greenIcon = L.icon({ ...radioMastObject, iconUrl: greenIcon });
+config.redIcon = L.icon({ ...radioMastObject, iconUrl: redIcon });
+config.yellowIcon = L.icon({ ...radioMastObject, iconUrl: yellowIcon });
+config.orangeIcon = L.icon({ ...radioMastObject, iconUrl: orangeIcon });
+config.deepOrangeIcon = L.icon({ ...radioMastObject, iconUrl: deepOrangeIcon });
 
 config.gpsIcon = L.icon({
   iconUrl: gpsIcon,
