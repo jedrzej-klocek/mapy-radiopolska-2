@@ -1,11 +1,12 @@
-import React from "react";
+import React, { useCallback, useState, useMemo } from "react";
 import { Marker, Popup } from "react-leaflet";
+import { getDeviation } from "../helpers/marker";
 
 import "../styles/Marker.css";
 
 const { REACT_APP_PROD_LIST_URL } = process.env;
 
-const radioButtons = [
+const checkboxes = [
   {
     value: 0,
     name: "ta sama częstotliwość",
@@ -31,16 +32,84 @@ const radioButtons = [
 const MapMarker = ({
   element,
   config,
+  drawMultiple,
   system,
-  isInterferences,
-  interferences,
+  interferencesChanged,
+  interferenceFrom,
 }) => {
-  const isRadioChecked = (radio) => {};
+  const [interferencesArr, setInterferencesArr] = useState([]);
+
+  const isInterferences = useMemo(() => {
+    if (drawMultiple) return false;
+
+    return (
+      !interferenceFrom ||
+      (interferenceFrom && element.id_nadajnik === interferenceFrom.id_nadajnik)
+    );
+  }, [drawMultiple, element, interferenceFrom]);
+
+  const onCheckboxChange = useCallback(
+    (event) => {
+      let newArr = [...interferencesArr];
+
+      if (event.target.checked) {
+        newArr.push(+event.target.value);
+      } else {
+        newArr = newArr.filter((el) => el !== +event.target.value);
+      }
+
+      setInterferencesArr(newArr);
+      interferencesChanged(element, newArr);
+    },
+    [interferencesChanged, interferencesArr, element]
+  );
+
+  const isCheckboxChecked = useCallback(
+    (checkbox) => {
+      if (!interferenceFrom) return false;
+
+      return interferencesArr.includes(checkbox.value);
+    },
+    [interferencesArr, interferenceFrom]
+  );
+
+  const switchIconPath = useCallback(() => {
+    const deviation = getDeviation(interferenceFrom, element);
+    let icon = config.icon;
+
+    if (
+      interferenceFrom &&
+      element.id_nadajnik === interferenceFrom.id_nadajnik
+    )
+      return icon;
+
+    switch (deviation) {
+      case 0.4:
+        icon = config.greenIcon;
+        break;
+      case 0.3:
+        icon = config.yellowIcon;
+        break;
+      case 0.2:
+        icon = config.orangeIcon;
+        break;
+      case 0.1:
+        icon = config.deepOrangeIcon;
+        break;
+      case 0:
+        icon = config.redIcon;
+        break;
+      default:
+        break;
+    }
+
+    return icon;
+  }, [interferenceFrom, config, element]);
 
   return (
     <Marker
       position={[element.szerokosc, element.dlugosc]}
-      icon={config.myIcon}
+      icon={switchIconPath()}
       className="transmitter_marker"
       zIndexOffset={2000}
     >
@@ -48,7 +117,7 @@ const MapMarker = ({
         {element.skrot || ""}
         <a
           target="_blank"
-          rel="noreferrer"
+          rel="noopener noreferrer"
           href={`${REACT_APP_PROD_LIST_URL}/obiekt/${element.id_obiekt}`}
         >
           {element.obiekt || ""}
@@ -74,19 +143,22 @@ const MapMarker = ({
         <br />
         {`Wys. umieszcz. nadajnika: ${element.antena_npt}m n.p.t`}
         <br />
-        {isInterferences && interferences.byTransmitter === null ? (
+        {isInterferences ? (
           <form>
             <b>Sprawdź interferencje: </b>
-            {radioButtons.map((radio) => (
-              <div className="radio" key={`interferences-${radio.value}`}>
-                <label htmlFor={`${element.id_nadajnik}-radio-${radio.value}`}>
+            {checkboxes.map((checkbox) => (
+              <div className="checkbox" key={`interferences-${checkbox.value}`}>
+                <label
+                  htmlFor={`${element.id_nadajnik}-checkbox-${checkbox.value}`}
+                >
                   <input
-                    id={`${element.id_nadajnik}-radio-${radio.value}`}
-                    type="radio"
-                    value={radio.value}
-                    checked={isRadioChecked(radio)}
+                    id={`${element.id_nadajnik}-checkbox-${checkbox.value}`}
+                    type="checkbox"
+                    value={checkbox.value}
+                    checked={isCheckboxChecked(checkbox)}
+                    onChange={onCheckboxChange}
                   />
-                  <span>{radio.name}</span>
+                  <span>{checkbox.name}</span>
                 </label>
               </div>
             ))}

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import { RPLegend } from "./Legend";
 import { configurationSettingsCheckboxes } from "../config/Configurations";
 
@@ -18,21 +18,7 @@ const ConfigurationsBox = ({
   const [possibleConfigurations, setPossibleConfigurations] = useState([]);
   const [checkedConfiguration, setCheckedConfiguration] = useState(null);
 
-  useEffect(() => {
-    getPossibleConfiguration();
-  }, [system]);
-
-  useEffect(() => {
-    callbackFromApp(checkedConfiguration);
-  }, [checkedConfiguration]);
-
-  useEffect(() => {
-    settingsCallback({
-      settings: { ...stateSettings },
-    });
-  }, [stateSettings]);
-
-  const getPossibleConfiguration = () => {
+  const getPossibleConfiguration = useCallback(() => {
     if (system || !selected) {
       const possibleConfs = configurations.filter(
         (configuration) => configuration.typ === system
@@ -41,7 +27,27 @@ const ConfigurationsBox = ({
       setPossibleConfigurations(possibleConfs);
       setCheckedConfiguration(possibleConfs[0]);
     }
-  };
+  }, [
+    setPossibleConfigurations,
+    setCheckedConfiguration,
+    system,
+    selected,
+    configurations,
+  ]);
+
+  useEffect(() => {
+    getPossibleConfiguration();
+  }, [system, getPossibleConfiguration]);
+
+  useEffect(() => {
+    callbackFromApp(checkedConfiguration);
+  }, [checkedConfiguration, callbackFromApp]);
+
+  useEffect(() => {
+    settingsCallback({
+      settings: { ...stateSettings },
+    });
+  }, [stateSettings, settingsCallback]);
 
   const possibleConfRadios = () => {
     return possibleConfigurations.map((configuration) => (

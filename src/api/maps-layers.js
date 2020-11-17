@@ -53,7 +53,9 @@ export const fetchKMLsArray = async (elements, configuration) => {
           .then((response) => {
             const bounds = mapKMLToBounds(response);
 
-            return { ...element, bounds };
+            const { id_nadajnik, szerokosc, dlugosc, _mapahash, mhz } = element;
+
+            return { szerokosc, dlugosc, _mapahash, bounds, id_nadajnik, mhz };
           })
           .catch((e) => console.error(e));
       }

@@ -7,7 +7,7 @@ const Buttons = ({ onSystemChange }) => {
 
   useEffect(() => {
     onSystemChange(system);
-  }, [system]);
+  }, [system, onSystemChange]);
 
   return (
     <>

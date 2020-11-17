@@ -13,6 +13,8 @@ export const postError = async (body) => {
   })
     .then((res) => res.text())
     .catch(() => {
-      throw "Nieudana próba powiadomienia administracji o problemie.";
+      throw new Error(
+        "Nieudana próba powiadomienia administracji o problemie."
+      );
     });
 };

@@ -38,3 +38,7 @@ export const layersDifference = (transmitters, ids) => {
 
   return { difference, toAdd };
 };
+
+export const parseCommaNumber = (stringValue) => {
+  return +stringValue.replace(",", ".");
+};

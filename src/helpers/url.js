@@ -4,18 +4,22 @@
  * m -> allow multiple layers
  * d -> draw directional characteristics
  */
-export const generateUrl = (state) => {
-  const { selectedConfiguration, toDrawSelected, system, settings } = state;
+export const generateUrl = ({
+  selectedConf,
+  toDrawSelected,
+  system,
+  settings,
+}) => {
   const domain = window.location.origin;
   let url = domain;
 
-  if (selectedConfiguration) {
+  if (selectedConf) {
     if (toDrawSelected.length) {
       url += "?tra=";
       url += toDrawSelected
         .map((element) => `${element.id_nadajnik}`)
         .join(",");
-      url += `&cfg=${selectedConfiguration.cfg}`;
+      url += `&cfg=${selectedConf.cfg}`;
       url += `&sys=${system}`;
       url += `&z=${settings.automaticZoom}`;
       url += `&m=${settings.drawMultiple}`;
@@ -50,5 +54,5 @@ export const parseQueryToState = (query) => {
     newState.system = query.sys;
   }
 
-  return newState;
+  return { ...newState, ids: query.tra.split(",") };
 };

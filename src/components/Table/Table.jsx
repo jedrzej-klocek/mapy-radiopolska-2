@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useCallback, useRef, useState } from "react";
 import { BootstrapTable, TableHeaderColumn } from "react-bootstrap-table";
 
 import { RPLoader } from "./Loader";
@@ -13,9 +13,15 @@ const Table = ({ system, selected, data, callbackFromApp }) => {
   const ref = useRef(null);
   const [selectedIDs, setSelectedIDs] = useState([]);
 
+  const updateSelectedIDs = useCallback(() => {
+    const IDs = selected.map((transmitter) => transmitter.id_nadajnik);
+
+    setSelectedIDs(IDs);
+  }, [selected]);
+
   useEffect(() => {
     updateSelectedIDs();
-  }, [selected]);
+  }, [selected, updateSelectedIDs]);
 
   const onSelect = (row, isSelected) => {
     let tempSelected = [...selected];
@@ -38,12 +44,6 @@ const Table = ({ system, selected, data, callbackFromApp }) => {
       : [];
 
     callbackFromApp(transmitters);
-  };
-
-  const updateSelectedIDs = () => {
-    const IDs = selected.map((transmitter) => transmitter.id_nadajnik);
-
-    setSelectedIDs(IDs);
   };
 
   const selectRowProp = {
