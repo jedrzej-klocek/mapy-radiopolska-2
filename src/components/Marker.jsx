@@ -64,9 +64,14 @@ const MapMarker = ({
     [interferencesChanged, interferencesArr, element]
   );
 
-  const isCheckboxChecked = (checkbox) => {
-    return interferencesArr.includes(checkbox.value);
-  };
+  const isCheckboxChecked = useCallback(
+    (checkbox) => {
+      if (!interferenceFrom) return false;
+
+      return interferencesArr.includes(checkbox.value);
+    },
+    [interferencesArr, interferenceFrom]
+  );
 
   const switchIconPath = useCallback(() => {
     const deviation = getDeviation(interferenceFrom, element);

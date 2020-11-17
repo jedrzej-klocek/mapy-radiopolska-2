@@ -130,7 +130,7 @@ const LittleTable = ({
         onClick={toggle}
       />
       <BootstrapTable
-        data={data}
+        data={data.filter((el) => el.typ === system)}
         selectRow={selectRowProp}
         striped
         hover

@@ -32,8 +32,6 @@ class MapLayer extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      selectedTransmitters: [],
-      newSelectedTransmitters: [],
       markers: [],
       directionalChars: [],
       gpsPosition: null,
@@ -77,10 +75,11 @@ class MapLayer extends Component {
     deviationArr.forEach((value) => {
       const interferencedTrans = this.props.data.filter((el) => {
         return (
-          (el.id_nadajnik !== transmitter.id_nadajnik &&
-            parseCommaNumber(el.mhz) - value ===
-              parseCommaNumber(transmitter.mhz)) ||
-          parseCommaNumber(el.mhz) + value === parseCommaNumber(transmitter.mhz)
+          el.id_nadajnik !== transmitter.id_nadajnik &&
+          (parseCommaNumber(el.mhz) - value ===
+            parseCommaNumber(transmitter.mhz) ||
+            parseCommaNumber(el.mhz) + value ===
+              parseCommaNumber(transmitter.mhz))
         );
       });
 
@@ -127,10 +126,16 @@ class MapLayer extends Component {
         }
       }
     }
+    if (prevProps.selectedTransmitters !== props.selectedTransmitters) {
+      this.state.interferenceFrom = null;
+      this.state.interferencedTransmittersArr = [];
+      this.state.interferencedDeviationArr = [];
+    }
   }
 
   setView() {
-    const { map, selectedTransmitters } = this.state;
+    const { map } = this.state;
+    const { selectedTransmitters } = this.props;
 
     let latitude = 0;
     let longitude = 0;
