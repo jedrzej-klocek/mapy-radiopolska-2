@@ -48,6 +48,15 @@ const MapMarker = ({
     );
   }, [drawMultiple, element, interferenceFrom]);
 
+  const filteredCheckboxes = useMemo(() => {
+    return checkboxes.filter((checkbox) => {
+      if (system === "fm") return true;
+      if (system !== "fm" && checkbox.value === 0) return true;
+
+      return false;
+    });
+  }, [system]);
+
   const onCheckboxChange = useCallback(
     (event) => {
       let newArr = [...interferencesArr];
@@ -107,65 +116,78 @@ const MapMarker = ({
   }, [interferenceFrom, config, element]);
 
   return (
-    <Marker
-      position={[element.szerokosc, element.dlugosc]}
-      icon={switchIconPath()}
-      className="transmitter_marker"
-      zIndexOffset={2000}
-    >
-      <Popup>
-        {element.skrot || ""}
-        <a
-          target="_blank"
-          rel="noopener noreferrer"
-          href={`${REACT_APP_PROD_LIST_URL}/obiekt/${element.id_obiekt}`}
-        >
-          {element.obiekt || ""}
-        </a>
-        <br />
-        {system === "fm" ? (
-          <>
-            <b>{element.program || ""}</b>
-            <br />
-          </>
-        ) : (
-          <>
-            <b>{element.multipleks || ""}</b>
-            <br />
-          </>
-        )}
-        Częstotliwość: {element.mhz} MHz {element.kategoria}
-        <br />
-        {system === "fm" ? `PI: ${element.pi}` : ""}
-        {` ERP: ${element.erp}kW Pol: ${element.polaryzacja}`}
-        <br />
-        {`Wys. podst. masztu: ${element.wys_npm}m n.p.m`}
-        <br />
-        {`Wys. umieszcz. nadajnika: ${element.antena_npt}m n.p.t`}
-        <br />
-        {isInterferences ? (
-          <form>
-            <b>Sprawdź interferencje: </b>
-            {checkboxes.map((checkbox) => (
-              <div className="checkbox" key={`interferences-${checkbox.value}`}>
-                <label
-                  htmlFor={`${element.id_nadajnik}-checkbox-${checkbox.value}`}
-                >
-                  <input
-                    id={`${element.id_nadajnik}-checkbox-${checkbox.value}`}
-                    type="checkbox"
-                    value={checkbox.value}
-                    checked={isCheckboxChecked(checkbox)}
-                    onChange={onCheckboxChange}
-                  />
-                  <span>{checkbox.name}</span>
-                </label>
-              </div>
-            ))}
-          </form>
-        ) : null}
-      </Popup>
-    </Marker>
+    element.szerokosc &&
+    element.dlugosc && (
+      <Marker
+        position={[element.szerokosc, element.dlugosc]}
+        icon={switchIconPath()}
+        className="transmitter_marker"
+        zIndexOffset={2000}
+      >
+        <Popup>
+          {element.skrot || ""}
+          {element.id_obiekt ? (
+            <a
+              target="_blank"
+              rel="noopener noreferrer"
+              href={`${REACT_APP_PROD_LIST_URL}/obiekt/${element.id_obiekt}`}
+            >
+              {element.obiekt || ""}
+            </a>
+          ) : (
+            element.obiekt || ""
+          )}
+          <br />
+          {system === "fm" ? (
+            <>
+              <b>{element.program || ""}</b>
+              <br />
+            </>
+          ) : (
+            <>
+              <b>{element.multipleks || ""}</b>
+              <br />
+            </>
+          )}
+          Częstotliwość: {element.mhz || ""} MHz {element.kategoria || ""}
+          <br />
+          {system === "fm" ? `PI: ${element.pi}` : ""}
+          {` ERP: ${element.erp}kW Pol: ${element.polaryzacja}`}
+          <br />
+          {`Wys. podst. masztu: ${element.wys_npm}m n.p.m`}
+          <br />
+          {`Wys. umieszcz. nadajnika: ${element.antena_npt}m n.p.t`}
+          <br />
+          {isInterferences && (
+            <form>
+              <b>Sprawdź interferencje:</b>
+              {filteredCheckboxes.map(
+                (checkbox) =>
+                  element.id_nadajnik && (
+                    <div
+                      className="checkbox"
+                      key={`interferences-${checkbox.value}`}
+                    >
+                      <label
+                        htmlFor={`${element.id_nadajnik}-checkbox-${checkbox.value}`}
+                      >
+                        <input
+                          id={`${element.id_nadajnik}-checkbox-${checkbox.value}`}
+                          type="checkbox"
+                          value={checkbox.value}
+                          checked={isCheckboxChecked(checkbox)}
+                          onChange={onCheckboxChange}
+                        />
+                        <span>{checkbox.name || ""}</span>
+                      </label>
+                    </div>
+                  )
+              )}
+            </form>
+          )}
+        </Popup>
+      </Marker>
+    )
   );
 };
 

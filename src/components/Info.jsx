@@ -182,11 +182,12 @@ const Info = ({ showFull }) => {
           </h5>
           <div>
             <span>
-              Autor: Jędrzej Klocek, opiekun: dr inż. Przemysław Korpas,
-              Politechnika Warszawska 2018
+              Autor:
+              <a href="https://github.com/jedrzej-klocek">Jędrzej Klocek</a>,
+              opiekun: dr inż. Przemysław Korpas, Politechnika Warszawska 2018
             </span>
             <br />
-            <strong>Mapy RadioPolska beta version: 1.3.1</strong>
+            <strong>Mapy RadioPolska beta version: 2.11.22</strong>
           </div>
         </Modal.Footer>
       </Modal>

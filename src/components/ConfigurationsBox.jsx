@@ -19,7 +19,7 @@ const ConfigurationsBox = ({
   const [checkedConfiguration, setCheckedConfiguration] = useState(null);
 
   const getPossibleConfiguration = useCallback(() => {
-    if (system || !selected) {
+    if ((system && selected && selected.typ !== system) || !selected) {
       const possibleConfs = configurations.filter(
         (configuration) => configuration.typ === system
       );
