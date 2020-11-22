@@ -42,3 +42,13 @@ export const layersDifference = (transmitters, ids) => {
 export const parseCommaNumber = (stringValue) => {
   return +stringValue.replace(",", ".");
 };
+
+export const isInterferencedFrequency = (refFreq, freq, deviation) => {
+  return (
+    refFreq &&
+    freq &&
+    Math.abs(
+      Math.round((parseCommaNumber(refFreq) - parseCommaNumber(freq)) * 10) / 10
+    ) === deviation
+  );
+};

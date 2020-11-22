@@ -12,10 +12,10 @@ const mapKMLToBounds = (response) => {
     .GroundOverlay;
   const boundsArray = [];
 
-  boundsArray.push(Number(kml.LatLonBox.east._text));
-  boundsArray.push(Number(kml.LatLonBox.north._text));
-  boundsArray.push(Number(kml.LatLonBox.south._text));
-  boundsArray.push(Number(kml.LatLonBox.west._text));
+  boundsArray.push(Number(kml.LatLonBox.east._text) || 0);
+  boundsArray.push(Number(kml.LatLonBox.north._text) || 0);
+  boundsArray.push(Number(kml.LatLonBox.south._text) || 0);
+  boundsArray.push(Number(kml.LatLonBox.west._text) || 0);
   const corner1 = L.latLng(boundsArray[1], boundsArray[0]);
   const corner2 = L.latLng(boundsArray[2], boundsArray[3]);
 
@@ -44,7 +44,7 @@ const fetchKMLByMapHash = async (url) => {
 
 export const fetchKMLsArray = async (elements, configuration) => {
   const requests = elements
-    .filter((el) => el.typ === configuration.typ)
+    .filter((el) => el && configuration && el.typ === configuration.typ)
     .map((element) => {
       if (isValidElement(element, configuration)) {
         const url = `${REACT_APP_PROD_FILES_URL}/get/${configuration.cfg}/${element._mapahash}.kml`;

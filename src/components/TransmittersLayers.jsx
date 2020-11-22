@@ -26,18 +26,19 @@ const TransmittersLayers = ({
   const [imageOverlays, setImageOverlays] = useState([]);
   const arrToDraw = useMemo(() => {
     let response = false;
+    const filteredBySystemArr = arr.filter((el) => el && el.typ === system);
 
-    if (arr.length >= 30) {
+    if (filteredBySystemArr.length >= 30) {
       response = window.confirm(
-        `Czy na pewno chcesz wyświetlić ${arr.length} mapek? 
+        `Czy na pewno chcesz wyświetlić ${filteredBySystemArr.length} mapek? 
         Grozi to utratą stabilności Twojej przeglądarki.
         W przeciwnym wypadku zostanie narysowanych pierwszych 30 pozycji z listy`
       );
     }
     if (response === false) {
-      return arr.slice(0, 30);
+      return filteredBySystemArr.slice(0, 30);
     }
-  }, [arr]);
+  }, [arr, system]);
 
   const getImageOverlayClass = useCallback(
     (el) => {
@@ -72,14 +73,20 @@ const TransmittersLayers = ({
   const fetchImageOverlays = useCallback(async () => {
     await fetchKMLsArray(arrToDraw, configuration).then((res) => {
       setImageOverlays(
-        res.map((el) => (
-          <ImageOverlay
-            key={`${el.id_nadajnik}_overlay`}
-            url={`${REACT_APP_PROD_FILES_URL}/get/${configuration.cfg}/${el["_mapahash"]}.png`}
-            bounds={el.bounds}
-            className={getImageOverlayClass(el)}
-          />
-        ))
+        res.map(
+          (el) =>
+            el &&
+            el.id_nadajnik &&
+            el.bounds &&
+            el["_mapahash"] && (
+              <ImageOverlay
+                key={`${el.id_nadajnik}_overlay`}
+                url={`${REACT_APP_PROD_FILES_URL}/get/${configuration.cfg}/${el["_mapahash"]}.png`}
+                bounds={el.bounds}
+                className={getImageOverlayClass(el)}
+              />
+            )
+        )
       );
     });
   }, [arrToDraw, configuration, getImageOverlayClass]);
@@ -88,58 +95,64 @@ const TransmittersLayers = ({
     const markers = [];
 
     Promise.all(
-      arrToDraw.map(async (el) => {
-        const url = `${REACT_APP_PROD_FILES_URL}/ant_pattern/${el.id_antena}`;
+      arrToDraw
+        .filter((el) => el.typ === system)
+        .map(async (el) => {
+          const url = `${REACT_APP_PROD_FILES_URL}/ant_pattern/${el.id_antena}`;
 
-        await fetch(url)
-          .then(async (res) => {
-            if (!res.ok) {
+          await fetch(url)
+            .then(async (res) => {
+              if (!res.ok) {
+                try {
+                  await postError({
+                    code: res.status,
+                    method: "GET",
+                    url,
+                  });
+
+                  toast.info(
+                    `Powiadamiam administrację o problemie: brak charakterystyki kierunkowej anteny`
+                  );
+                } catch (e) {
+                  toast.error(e);
+                }
+              }
+
+              return [res.url, res.ok];
+            })
+            .then(([url, ok]) => {
+              markers.push(
+                (ok &&
+                  el.szerokosc &&
+                  el.dlugosc &&
+                  el.id_nadajnik &&
+                  url(
+                    <Marker
+                      key={`${el.id_nadajnik}_ant`}
+                      position={[el.szerokosc, el.dlugosc]}
+                      icon={L.icon({ iconUrl: url, iconSize: [120, 120] })}
+                      zIndexOffset={1000}
+                    />
+                  )) ||
+                  null
+              );
+            })
+            .catch(async () => {
               try {
                 await postError({
-                  code: res.status,
+                  code: "unknown",
                   method: "GET",
                   url,
                 });
-
-                toast.info(
-                  `Powiadamiam administrację o problemie: brak charakterystyki kierunkowej anteny`
-                );
               } catch (e) {
-                toast.error(e);
+                toast.info(e);
               }
-            }
-
-            return [res.url, res.ok];
-          })
-          .then(([url, ok]) => {
-            markers.push(
-              (ok && (
-                <Marker
-                  key={`${el.id_nadajnik}_ant`}
-                  position={[el.szerokosc, el.dlugosc]}
-                  icon={L.icon({ iconUrl: url, iconSize: [120, 120] })}
-                  zIndexOffset={1000}
-                />
-              )) ||
-                null
-            );
-          })
-          .catch(async () => {
-            try {
-              await postError({
-                code: "unknown",
-                method: "GET",
-                url,
-              });
-            } catch (e) {
-              toast.info(e);
-            }
-          });
-      })
+            });
+        })
     ).then(() => {
       setDirectionalCharts(markers);
     });
-  }, [arrToDraw, toast]);
+  }, [arrToDraw, toast, system]);
 
   useEffect(() => {
     fetchAntennasPatterns();
@@ -152,19 +165,25 @@ const TransmittersLayers = ({
         {directional && directionalCharts}
         {imageOverlays}
         {markersArr.length &&
-          markersArr.map((el) => (
-            <React.Fragment key={el.id_nadajnik}>
-              <RPMarker
-                key={el.id_nadajnik}
-                element={el}
-                config={config}
-                system={system}
-                interferencesChanged={interferencesChanged}
-                interferenceFrom={interferenceFrom}
-                drawMultiple={drawMultiple}
-              />
-            </React.Fragment>
-          ))}
+          markersArr
+            .filter((el) => el.typ === system)
+            .map(
+              (el) =>
+                el &&
+                el.id_nadajnik && (
+                  <React.Fragment key={el.id_nadajnik}>
+                    <RPMarker
+                      key={el.id_nadajnik}
+                      element={el}
+                      config={config}
+                      system={system}
+                      interferencesChanged={interferencesChanged}
+                      interferenceFrom={interferenceFrom}
+                      drawMultiple={drawMultiple}
+                    />
+                  </React.Fragment>
+                )
+            )}
       </LayerGroup>
     </>
   );

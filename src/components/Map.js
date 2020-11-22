@@ -14,7 +14,7 @@ import { RPTransmittersLayers } from "./TransmittersLayers";
 import {
   shouldDrawLayers,
   shouldSetView,
-  parseCommaNumber,
+  isInterferencedFrequency,
 } from "../helpers/map";
 import { mapconfig as config } from "../config/Map";
 
@@ -76,10 +76,7 @@ class MapLayer extends Component {
       const interferencedTrans = this.props.data.filter((el) => {
         return (
           el.id_nadajnik !== transmitter.id_nadajnik &&
-          (parseCommaNumber(el.mhz) - value ===
-            parseCommaNumber(transmitter.mhz) ||
-            parseCommaNumber(el.mhz) + value ===
-              parseCommaNumber(transmitter.mhz))
+          isInterferencedFrequency(transmitter.mhz, el.mhz, value)
         );
       });
 
@@ -126,7 +123,10 @@ class MapLayer extends Component {
         }
       }
     }
-    if (prevProps.selectedTransmitters !== props.selectedTransmitters) {
+    if (
+      prevProps.selectedTransmitters !== props.selectedTransmitters ||
+      props.system !== prevProps.system
+    ) {
       this.state.interferenceFrom = null;
       this.state.interferencedTransmittersArr = [];
       this.state.interferencedDeviationArr = [];
