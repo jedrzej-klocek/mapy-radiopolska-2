@@ -38,6 +38,8 @@ const TransmittersLayers = ({
     if (response === false) {
       return filteredBySystemArr.slice(0, 30);
     }
+
+    return filteredBySystemArr;
   }, [arr, system]);
 
   const getImageOverlayClass = useCallback(
@@ -122,18 +124,14 @@ const TransmittersLayers = ({
             })
             .then(([url, ok]) => {
               markers.push(
-                (ok &&
-                  el.szerokosc &&
-                  el.dlugosc &&
-                  el.id_nadajnik &&
-                  url(
-                    <Marker
-                      key={`${el.id_nadajnik}_ant`}
-                      position={[el.szerokosc, el.dlugosc]}
-                      icon={L.icon({ iconUrl: url, iconSize: [120, 120] })}
-                      zIndexOffset={1000}
-                    />
-                  )) ||
+                (ok && el.szerokosc && el.dlugosc && el.id_nadajnik && url && (
+                  <Marker
+                    key={`${el.id_nadajnik}_ant`}
+                    position={[el.szerokosc, el.dlugosc]}
+                    icon={L.icon({ iconUrl: url, iconSize: [120, 120] })}
+                    zIndexOffset={1000}
+                  />
+                )) ||
                   null
               );
             })
